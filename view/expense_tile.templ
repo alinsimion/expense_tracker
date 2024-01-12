@@ -1,0 +1,10 @@
+package view
+
+import (
+    "github.com/alinsimion/expense_tracker/model"
+ 
+)
+
+templ ShowExpense(expense model.Expense) {
+    <div>{expense.Description } {expense.Currency}</div>
+}
