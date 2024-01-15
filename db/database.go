@@ -39,7 +39,7 @@ func OpenDB() DB {
 	}
 
 	for _, eachrecord := range records {
-		amount, _ := strconv.Atoi(eachrecord[3])
+		amount, _ := strconv.ParseFloat(eachrecord[3], 64)
 
 		date := strings.Split(eachrecord[1], ",")
 

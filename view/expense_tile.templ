@@ -2,9 +2,17 @@ package view
 
 import (
     "github.com/alinsimion/expense_tracker/model"
- 
+    "fmt"
+    "strconv"
 )
 
 templ ShowExpense(expense model.Expense) {
-    <div>{expense.Description } {expense.Currency}</div>
+    <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
+        <td class="px-6 py-4">{expense.Description}</td>
+        <td class="px-6 py-4">{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
+        <td class="px-6 py-4">{expense.Currency}</td>
+        <td class="px-6 py-4">{expense.Category}</td>
+        <td class="px-6 py-4">{fmt.Sprintf("%02d-%02d-%02d", expense.Date.Day(), expense.Date.Month(), expense.Date.Year())}</td>
+        <td class="px-6 py-4">{expense.Type}</td>
+    </tr>
 }

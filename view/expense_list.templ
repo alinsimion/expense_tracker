@@ -1,8 +1,6 @@
 package view
 
 import (
-    "fmt"
-    "strconv"
     "github.com/alinsimion/expense_tracker/model"
     "github.com/alinsimion/expense_tracker/view/layout"
 )
@@ -18,28 +16,19 @@ templ ShowExpenseList(title string, cmp templ.Component) {
 templ ExpenseList(el []model.Expense) {
     <div class="w-full bg-gray-700 rounded-md text-gray-400 py-2 px-2">
         <table class="w-full text-sm text-left text-gray-400 ">
-            <thead class="text-xs  uppercase bg-gray-700 text-gray-400">
+            <thead class="text-xs uppercase bg-gray-700 text-gray-400 rounded-md">
                 <tr>
                     <th scope="col" class="px-6 py-3">Description</th>
                     <th scope="col" class="px-6 py-3">Amount</th>
                     <th scope="col" class="px-6 py-3">Currency</th>
+                    <th scope="col" class="px-6 py-3">Category</th>
                     <th scope="col" class="px-6 py-3">Date</th>
                     <th scope="col" class="px-6 py-3">Type</th>
                 </tr>
             </thead>
             <tbody>
                 for i := 0 ; i < len(el) ; i++ {
-                    
-                        <tr class="border-b bg-gray-800 border-gray-700 ">
-                            <td class="px-6 py-4">{el[i].Description}</td>
-                            <td class="px-6 py-4">{strconv.Itoa(el[i].Amount)}</td>
-                            <td class="px-6 py-4">{el[i].Currency}</td>
-                            // <td class="px-6 py-4">{el[i].Date.Format("2006/10/01")}</td>
-                            <td class="px-6 py-4">{fmt.Sprintf("%d-%02d-%02d", el[i].Date.Day(), el[i].Date.Month(), el[i].Date.Year())}</td>
-                            // fmt.Printf("%d-%02d-%02dT%02d:%02d:%02d-00:00", el[i].Date)
-                            <td class="px-6 py-4">{el[i].Type}</td>
-                        </tr>
-                    
+                    @ShowExpense(el[i])
                 }
             </tbody>
         </table>

@@ -1,0 +1,168 @@
+package view
+
+import "strconv"
+import "fmt"
+import "github.com/alinsimion/expense_tracker/view/layout"
+import "github.com/alinsimion/expense_tracker/model"
+
+
+func getMaxMonth(months model.SortedMap) (float64, string){
+    maxAmount := 0.0
+    maxMonth := ""
+
+    for index, amount := range months.Values {
+        if amount > maxAmount {
+            maxAmount = amount
+            maxMonth = months.Keys[index]
+        }
+    }
+
+    return maxAmount, maxMonth
+}
+
+func getMaxDay(days map[string]float64) (float64, string){
+    maxAmount := 0.0
+    maxDay := ""
+
+    for day, amount := range(days) {
+        if amount > maxAmount {
+            maxAmount = amount
+            maxDay = day
+        }
+    }
+    
+    return maxAmount, maxDay
+}
+
+func getTopThreeCategories(categories model.SortedMap) ([]string, []float64)  {
+    var topThreeCategories []string
+    var topThreeAmounts []float64
+    for i := 0; i < 3; i++ {
+        maxAmount := 0.0
+        maxCategory := ""
+        maxIndex := 0  
+        
+        for index, amount := range categories.Values {
+            if amount > maxAmount {
+                maxAmount = amount
+                maxCategory = categories.Keys[index]
+                maxIndex = index
+            }
+        }
+        
+        topThreeCategories = append(topThreeCategories, maxCategory)
+        topThreeAmounts = append(topThreeAmounts, maxAmount)
+        categories.Keys = append(categories.Keys[:maxIndex], categories.Keys[maxIndex+1:]...)
+        categories.Values = append(categories.Values[:maxIndex], categories.Values[maxIndex+1:]...)
+        
+    }
+    return topThreeCategories, topThreeAmounts
+}
+
+// func getMostFrequentCategory(categories map[string])
+
+
+templ ShowAllStats(balance float64, expense model.Expense, categories model.SortedMap, months model.SortedMap, freeDays int,  days map[string]float64) {
+    @layout.Base("Stats") {
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 ">
+            @ShowCurrentBalance(balance)
+            @ShowLargestExpense(expense)
+            @ShowExpensesByCategory(categories)
+            @ShowMostExpensiveMonth(getMaxMonth(months))
+            @ShowMostExpensiveDay(getMaxDay(days))
+            @ShowExpensesByMonth(months)
+            @ShowLongestStreakWithoutExpense(freeDays)
+            @ShowTopThreeCategoriez(getTopThreeCategories(categories))
+            // @ShowMostFrequentCategory(categories)
+        </div>
+    }
+
+}
+
+templ ShowMostFrequentCategory(categories []string, amounts []float64) {
+    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Most frequent category</div>
+        <div class="text-gray-100 text-4xl">{categories[0]}</div>
+        <div class="text-gray-300 text-xl">{fmt.Sprintf("%0.f", amounts[0])} times</div>
+    </div>
+}
+
+templ ShowTopThreeCategoriez(categories []string, amounts []float64) {
+    <div class="rounded-md grid bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Top 3 categories</div>
+        for i, category := range(categories) {
+            <div class="flex justify-between">
+                <span class="text-gray-400 text-lg">{category}</span>
+                <span class="text-gray-100 text-lg">{fmt.Sprintf("%0.f",amounts[i])} RON</span>
+            </div>
+        }
+    </div>
+}
+
+templ ShowMostExpensiveDay(maxAmount float64, maxDay string) {
+    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Most expensive day</div>
+        <div class="text-gray-100 text-4xl">{maxDay}</div>
+        <div class="text-gray-300 text-xl flex justify-between">{fmt.Sprintf("%0.f",maxAmount)} RON</div>
+    </div>
+
+}
+
+templ ShowLongestStreakWithoutExpense(days int) {
+    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Streak without expense</div>
+        <div class="text-gray-100 text-4xl content-center justify-center">{strconv.Itoa(days)} days</div>
+    </div>
+
+}
+
+templ ShowMostExpensiveMonth(maxAmount float64, maxMonth string) {
+    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Most expensive month</div>
+        <div class="text-gray-100 text-4xl">{maxMonth}</div>
+        <div class="text-gray-300 text-xl">{fmt.Sprintf("%0.f",maxAmount)} RON</div>
+    </div>
+}
+
+templ ShowExpensesByMonth(months model.SortedMap) {
+    <div class="rounded-md row-span-2 bg-gray-700 p-4">
+    <div class="text-gray-400 text-sm">Expenses by month</div>
+        for index, amount := range months.Values {
+            <div class="flex justify-between">
+                <span class="text-gray-400 text-lg">{months.Keys[index]}</span>
+                <span class="text-gray-100 text-lg">{fmt.Sprintf("%0.f", amount)} RON</span>
+            </div>
+        }
+    </div>
+
+}
+
+templ ShowExpensesByCategory(categories model.SortedMap) {
+    <div class="rounded-md row-span-2 bg-gray-700 p-4">
+    <div class="text-gray-400 text-sm">Expenses by category</div>
+        for index, amount := range categories.Values {
+            <div class="flex justify-between">
+                <span class="text-gray-400 text-lg">{categories.Keys[index]}</span>
+                <span class="text-gray-100 text-lg">{fmt.Sprintf("%0.f", amount)} RON</span>
+            </div>
+        }
+    </div>
+
+}
+
+templ ShowLargestExpense(expense model.Expense) {
+    <div class="rounded-md grid row-start-2 content-around justify-center bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Largest single expense</div>
+        <div class="text-gray-100 text-4xl">{fmt.Sprintf("%0.f",expense.Amount)} {expense.Currency}</div>
+        <div class="text-gray-300 text-md">{expense.Description} </div>
+    </div>
+    
+}
+
+
+templ ShowCurrentBalance(balance float64) {
+    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Total Balance</div>
+        <div class="text-gray-100 text-4xl">{fmt.Sprintf("%0.f",balance)} RON</div>
+    </div>
+}
