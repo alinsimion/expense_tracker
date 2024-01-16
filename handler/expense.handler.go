@@ -4,47 +4,38 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/alinsimion/expense_tracker/model"
+	"github.com/alinsimion/expense_tracker/service"
 	"github.com/alinsimion/expense_tracker/view"
 	"github.com/labstack/echo/v4"
 )
 
-type ExpenseServiceInterface interface {
-	GetExpense(id string) model.Expense
-	GetExpenses(skip int, limit int) []model.Expense
-	AddExpense(e model.Expense)
-	UpdateExpense(id string, e model.Expense) *model.Expense
-	GetCurrentBalance() float64
-	GetLargestExpense() model.Expense
-	GetAmountByCategory() ([]string, []float64)
-	GetAmountByMonth() ([]string, []float64)
-	GetAmountByDay() map[string]float64
-	GetLongestStreakWithoutExpense() int
+type ExpenseHandler struct {
+	ExpenseService service.ExpenseServiceInterface
 }
 
-func NewExpenseHandler(us ExpenseServiceInterface) *ExpenseHandler {
+func NewExpenseHandler(us service.ExpenseServiceInterface) *ExpenseHandler {
 	return &ExpenseHandler{
 		ExpenseService: us,
 	}
 }
 
-type ExpenseHandler struct {
-	ExpenseService ExpenseServiceInterface
-}
+// View Functions
 
-func (eh *ExpenseHandler) ShowExpenseById(c echo.Context) error {
+func (eh *ExpenseHandler) GetExpenseById(c echo.Context) error {
 	expenseId := c.Param("id")
 
 	fmt.Println(expenseId)
 
-	expense := eh.ExpenseService.GetExpense(expenseId)
+	expense := *eh.ExpenseService.GetExpense(expenseId)
 
 	se := view.ShowExpense(expense)
 
-	return eh.View(c, se)
+	return View(c, se)
 }
 
 func (eh *ExpenseHandler) GetExpenses(c echo.Context) error {
@@ -66,12 +57,18 @@ func (eh *ExpenseHandler) GetExpenses(c echo.Context) error {
 
 	se := view.ShowExpenseList("Expenses", view.ExpenseList(expenses))
 
-	return eh.View(c, se)
+	return View(c, se)
 }
 
 func (eh *ExpenseHandler) AddExpense(c echo.Context) error {
 
-	fmt.Println(c.FormParams())
+	var income string
+
+	if c.FormValue("type") == "" {
+		income = model.EXPENSE
+	} else {
+		income = model.INCOME
+	}
 
 	m := new(model.Expense)
 	var err error
@@ -86,49 +83,88 @@ func (eh *ExpenseHandler) AddExpense(c echo.Context) error {
 	m.Category = c.FormValue("categories")
 	m.Currency = "RON"
 	m.Date = time.Now()
-	m.Type = c.FormValue("type")
-
-	fmt.Println(m)
+	m.Type = income
 
 	eh.ExpenseService.AddExpense(*m)
-
-	return eh.ShowAddExpense(c)
-
 	// return c.JSON(http.StatusCreated, m)
+	return eh.ShowAddExpense(c)
+}
+
+func (eh *ExpenseHandler) DeleteExpense(c echo.Context) error {
+	return nil
+}
+
+// API Functions
+// TODO
+
+func filter(start string, end string) model.FilterFunc {
+	return func(e model.Expense) bool {
+
+		var startDate time.Time
+		var endDate time.Time
+
+		if start != "" && end != "" {
+
+			d, _ := strconv.Atoi(strings.Split(start, "/")[0])
+			m, _ := strconv.Atoi(strings.Split(start, "/")[1])
+			y, _ := strconv.Atoi(strings.Split(start, "/")[2])
+
+			startDate = time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
+
+			d, _ = strconv.Atoi(strings.Split(end, "/")[0])
+			m, _ = strconv.Atoi(strings.Split(end, "/")[1])
+			y, _ = strconv.Atoi(strings.Split(end, "/")[2])
+
+			endDate = time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
+		}
+
+		if startDate.IsZero() || endDate.IsZero() {
+			return false
+		}
+
+		if (e.Date.After(startDate) || e.Date.Equal(startDate)) && (e.Date.Before(endDate) || e.Date.Equal(endDate)) {
+			return false
+		}
+
+		return true
+	}
+}
+
+func (eh *ExpenseHandler) ShowAddExpense(c echo.Context) error {
+	sae := view.Page()
+
+	return View(c, sae)
 }
 
 func (eh *ExpenseHandler) ShowStats(c echo.Context) error {
 
+	start := c.QueryParams().Get("start")
+	end := c.QueryParams().Get("end")
 	// could get startDate and endDate for custom period stats
 
-	balance := eh.ExpenseService.GetCurrentBalance()
-	largestExpense := eh.ExpenseService.GetLargestExpense()
+	balance := eh.ExpenseService.GetCurrentBalance(filter(start, end))
+	expenses := eh.ExpenseService.GetCurrentExpenses(filter(start, end))
+	incomes := eh.ExpenseService.GetCurrentIncomes(filter(start, end))
+	largestExpense := eh.ExpenseService.GetLargestExpense(filter(start, end))
 
-	var categoryMap model.SortedMap
-
-	categoryMap.Keys, categoryMap.Values = eh.ExpenseService.GetAmountByCategory()
+	var categoryAmounts model.SortedMap
+	categoryAmounts.Keys, categoryAmounts.Values = eh.ExpenseService.GetAmountByCategory(filter(start, end))
 
 	var monthMap model.SortedMap
+	monthMap.Keys, monthMap.Values = eh.ExpenseService.GetAmountByMonth(filter(start, end))
 
-	monthMap.Keys, monthMap.Values = eh.ExpenseService.GetAmountByMonth()
-	days := eh.ExpenseService.GetAmountByDay()
-	dayStreak := eh.ExpenseService.GetLongestStreakWithoutExpense()
+	days := eh.ExpenseService.GetAmountByDay(filter(start, end))
+	dayStreak := eh.ExpenseService.GetLongestStreakWithoutExpense(filter(start, end))
 
-	ss := view.ShowAllStats(balance, largestExpense, categoryMap, monthMap, dayStreak, days)
+	var categoryCounts model.SortedMap
+	categoryCounts.Keys, categoryCounts.Values = eh.ExpenseService.GetCountsByCategory(filter(start, end))
 
-	return eh.View(c, ss)
+	ss := view.ShowAllStats(balance, largestExpense, categoryAmounts, monthMap, dayStreak, days, categoryCounts, incomes, expenses)
 
+	return View(c, ss)
 }
 
-func (eh *ExpenseHandler) ShowAddExpense(c echo.Context) error {
-
-	sae := view.Page()
-
-	return eh.View(c, sae)
-
-}
-
-func (uh *ExpenseHandler) View(c echo.Context, cmp templ.Component) error {
+func View(c echo.Context, cmp templ.Component) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTML)
 
 	return cmp.Render(c.Request().Context(), c.Response().Writer)

@@ -5,7 +5,7 @@ import "github.com/labstack/echo/v4"
 func SetupRoutes(app *echo.Echo, h *ExpenseHandler) {
 	group := app.Group("/expense")
 
-	group.GET("/:id", h.ShowExpenseById)
+	group.GET("/:id", h.GetExpenseById)
 	group.GET("", h.GetExpenses)
 	group.POST("", h.AddExpense)
 
@@ -17,4 +17,6 @@ func SetupRoutes(app *echo.Echo, h *ExpenseHandler) {
 
 	group3.GET("", h.ShowAddExpense)
 	group3.POST("", h.AddExpense)
+
+	
 }

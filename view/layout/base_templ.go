@@ -23,7 +23,7 @@ func Base(title string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\" data-theme=\"dark\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Budget Tracker\"><meta name=\"google\" content=\"notranslate\"><link rel=\"shortcut icon\" href=\"/img/templ.png\" type=\"image/png\"><script src=\"https://cdn.tailwindcss.com\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\" data-theme=\"dark\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Budget Tracker\"><meta name=\"google\" content=\"notranslate\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/icon?family=Material+Icons\"><link rel=\"shortcut icon\" href=\"/img/templ.png\" type=\"image/png\"><script src=\"https://cdn.tailwindcss.com\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -32,14 +32,14 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script><link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.4.10/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\"><link rel=\"stylesheet\" href=\"/css/styles.css\"><title>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script><link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.4.10/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\"><link rel=\"stylesheet\" href=\"style.css\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/base.templ`, Line: 18, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/base.templ`, Line: 19, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -54,7 +54,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script></head><body class=\"sample-transition\" hx-boost=\"true\"><div class=\"flex flex-row \"><div class=\"m-5 w-1/6 main\"><div class=\"fixed rounded-md bg-gray-700 flex flex-col w-1/6 mb-5 py-5 px-5 justify-start \"><a class=\"inline-block mb-2 text-gray-400 hover:text-gray-300 bg-gray-900 rounded hover:border-gray-600 text-blue-500 hover:bg-gray-600 py-1 px-3\" href=\"/expense\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script></head><body><div class=\"flex flex-col justify-center\"><div class=\"m-5 w-6/6 main\"><div class=\"fixed top-0 right-0 left-0 rounded-md bg-gradient-to-b from-gray-700 flex flex-row w-6/6 mb-5 py-5 px-5 justify-end \"><a class=\"inline-block mb-2 text-gray-400 hover:text-gray-300 bg-gray-900 rounded-full hover:border-gray-600 text-blue-500 hover:bg-gray-600 mx-4 py-2 px-6\" href=\"/expense\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -63,7 +63,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> <a class=\"inline-block mb-2 text-gray-400 hover:text-gray-300 bg-gray-900 rounded hover:border-gray-600 text-blue-500 hover:bg-gray-600 py-1 px-3\" href=\"/stats\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> <a class=\"inline-block mb-2 text-gray-400 hover:text-gray-300 bg-gray-900 rounded-full hover:border-gray-600 text-blue-500 hover:bg-gray-600 mx-4 py-2 px-6\" href=\"/stats\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,7 +72,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> <a class=\"inline-block mb-2 text-gray-400 hover:text-gray-300 bg-gray-900 rounded hover:border-gray-600 text-blue-500 hover:bg-gray-600 py-1 px-3\" href=\"/add_expense\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> <a class=\"inline-block mb-2 text-gray-400 hover:text-gray-300 bg-gray-900 rounded-full hover:border-gray-600 text-blue-500 hover:bg-gray-600 mx-4 py-2 px-6\" href=\"/add_expense\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -81,7 +81,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></div></div><div class=\"m-5 w-5/6 overflow-y-auto\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></div></div><div class=\"my-20 mx-4 md:mx-10\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

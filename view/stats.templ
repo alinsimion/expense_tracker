@@ -4,6 +4,9 @@ import "strconv"
 import "fmt"
 import "github.com/alinsimion/expense_tracker/view/layout"
 import "github.com/alinsimion/expense_tracker/model"
+import "math"
+
+
 
 
 func getMaxMonth(months model.SortedMap) (float64, string){
@@ -12,6 +15,23 @@ func getMaxMonth(months model.SortedMap) (float64, string){
 
     for index, amount := range months.Values {
         if amount > maxAmount {
+            maxAmount = amount
+            maxMonth = months.Keys[index]
+        }
+    }
+
+    return maxAmount, maxMonth
+}
+
+func getMinMonth(months model.SortedMap) (float64, string){
+    maxAmount := math.MaxFloat64
+    maxMonth := ""
+
+    for index, amount := range months.Values {
+        if amount == 0.0 {
+            continue
+        }
+        if amount < maxAmount {
             maxAmount = amount
             maxMonth = months.Keys[index]
         }
@@ -34,10 +54,11 @@ func getMaxDay(days map[string]float64) (float64, string){
     return maxAmount, maxDay
 }
 
-func getTopThreeCategories(categories model.SortedMap) ([]string, []float64)  {
+func getTopThreeCategoryAmounts(categories model.SortedMap) ([]string, []float64)  {
     var topThreeCategories []string
     var topThreeAmounts []float64
-    for i := 0; i < 3; i++ {
+
+    for i := 0; i < min(3, len(categories.Values)); i++ {
         maxAmount := 0.0
         maxCategory := ""
         maxIndex := 0  
@@ -59,35 +80,71 @@ func getTopThreeCategories(categories model.SortedMap) ([]string, []float64)  {
     return topThreeCategories, topThreeAmounts
 }
 
-// func getMostFrequentCategory(categories map[string])
+func getMostFrequentCategory(categoryCounts model.SortedMap) (string, float64){
+    maxCount := 0.0
+    maxCategory := ""
+
+    for index, amount := range categoryCounts.Values {
+        if amount > maxCount {
+            maxCount = amount
+            maxCategory = categoryCounts.Keys[index]
+        }
+    }
+
+    return maxCategory, maxCount
+
+}
 
 
-templ ShowAllStats(balance float64, expense model.Expense, categories model.SortedMap, months model.SortedMap, freeDays int,  days map[string]float64) {
+templ ShowAllStats(balance float64, expense model.Expense, categoryAmounts model.SortedMap, months model.SortedMap, freeDays int,  days map[string]float64, categoryCounts model.SortedMap, incomes float64, expenses float64) {
     @layout.Base("Stats") {
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 ">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mx-4 md:mx-40 ">
+            @ShowCurrentIncomes(incomes)
+            @ShowCurrentExpenses(expenses)
             @ShowCurrentBalance(balance)
             @ShowLargestExpense(expense)
-            @ShowExpensesByCategory(categories)
+            @ShowExpensesByCategory(categoryAmounts)
             @ShowMostExpensiveMonth(getMaxMonth(months))
             @ShowMostExpensiveDay(getMaxDay(days))
             @ShowExpensesByMonth(months)
             @ShowLongestStreakWithoutExpense(freeDays)
-            @ShowTopThreeCategoriez(getTopThreeCategories(categories))
-            // @ShowMostFrequentCategory(categories)
+            @ShowTopThreeCategories(getTopThreeCategoryAmounts(categoryAmounts))
+            @ShowMostFrequentCategories(getTopThreeCategoryAmounts(categoryCounts))
+            @ShowLeastExpensiveMonth(getMinMonth(months))
+            
         </div>
     }
 
 }
 
-templ ShowMostFrequentCategory(categories []string, amounts []float64) {
+templ ShowCurrentExpenses(expense float64) {
     <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
-        <div class="text-gray-400 text-lg">Most frequent category</div>
-        <div class="text-gray-100 text-4xl">{categories[0]}</div>
-        <div class="text-gray-300 text-xl">{fmt.Sprintf("%0.f", amounts[0])} times</div>
+        <div class="text-gray-400 text-lg">Total Expenses</div>
+        <div class="text-gray-100 text-4xl">{fmt.Sprintf("%0.f",expense)} RON</div>
     </div>
 }
 
-templ ShowTopThreeCategoriez(categories []string, amounts []float64) {
+templ ShowCurrentIncomes(income float64) {
+    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Total Income</div>
+        <div class="text-gray-100 text-4xl">{fmt.Sprintf("%0.f",income)} RON</div>
+    </div>
+}
+
+
+templ ShowMostFrequentCategories(categories []string, freqs []float64) {
+    <div class="rounded-md grid bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Top 3 categories </div>
+        for i, category := range(categories) {
+            <div class="flex justify-between">
+                <span class="text-gray-400 text-lg">{category}</span>
+                <span class="text-gray-100 text-lg">{fmt.Sprintf("%0.f", freqs[i])} times</span>
+            </div>
+        }
+    </div>
+}
+
+templ ShowTopThreeCategories(categories []string, amounts []float64) {
     <div class="rounded-md grid bg-gray-700 p-4">
         <div class="text-gray-400 text-lg">Top 3 categories</div>
         for i, category := range(categories) {
@@ -118,7 +175,15 @@ templ ShowLongestStreakWithoutExpense(days int) {
 
 templ ShowMostExpensiveMonth(maxAmount float64, maxMonth string) {
     <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
-        <div class="text-gray-400 text-lg">Most expensive month</div>
+        <div class="text-gray-400 text-lg">Most Expensive Month</div>
+        <div class="text-gray-100 text-4xl">{maxMonth}</div>
+        <div class="text-gray-300 text-xl">{fmt.Sprintf("%0.f",maxAmount)} RON</div>
+    </div>
+}
+
+templ ShowLeastExpensiveMonth(maxAmount float64, maxMonth string) {
+    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+        <div class="text-gray-400 text-lg">Least Expensive Month</div>
         <div class="text-gray-100 text-4xl">{maxMonth}</div>
         <div class="text-gray-300 text-xl">{fmt.Sprintf("%0.f",maxAmount)} RON</div>
     </div>
@@ -134,7 +199,6 @@ templ ShowExpensesByMonth(months model.SortedMap) {
             </div>
         }
     </div>
-
 }
 
 templ ShowExpensesByCategory(categories model.SortedMap) {

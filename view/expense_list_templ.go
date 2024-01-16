@@ -126,7 +126,7 @@ func ExpenseList(el []model.Expense) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for i := 0; i < len(el); i++ {
-			templ_7745c5c3_Err = ShowExpense(el[i]).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = ShowOneExpense(el[i]).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

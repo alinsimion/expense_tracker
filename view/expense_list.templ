@@ -28,7 +28,7 @@ templ ExpenseList(el []model.Expense) {
             </thead>
             <tbody>
                 for i := 0 ; i < len(el) ; i++ {
-                    @ShowExpense(el[i])
+                    @ShowOneExpense(el[i])
                 }
             </tbody>
         </table>

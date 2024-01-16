@@ -4,9 +4,23 @@ import (
     "github.com/alinsimion/expense_tracker/model"
     "fmt"
     "strconv"
+	"github.com/alinsimion/expense_tracker/view/layout"
 )
 
 templ ShowExpense(expense model.Expense) {
+    @layout.Base("Expense details") {
+        <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
+            <td class="px-6 py-4">{expense.Description}</td>
+            <td class="px-6 py-4">{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
+            <td class="px-6 py-4">{expense.Currency}</td>
+            <td class="px-6 py-4">{expense.Category}</td>
+            <td class="px-6 py-4">{fmt.Sprintf("%02d-%02d-%02d", expense.Date.Day(), expense.Date.Month(), expense.Date.Year())}</td>
+            <td class="px-6 py-4">{expense.Type}</td>
+        </tr>
+    }
+}
+
+templ ShowOneExpense(expense model.Expense) {
     <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
         <td class="px-6 py-4">{expense.Description}</td>
         <td class="px-6 py-4">{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
@@ -14,5 +28,14 @@ templ ShowExpense(expense model.Expense) {
         <td class="px-6 py-4">{expense.Category}</td>
         <td class="px-6 py-4">{fmt.Sprintf("%02d-%02d-%02d", expense.Date.Day(), expense.Date.Month(), expense.Date.Year())}</td>
         <td class="px-6 py-4">{expense.Type}</td>
+         <td class="px-6 py-4">
+            <a href="/expenses/{expense.ID}/edit" class="text-indigo-600 hover:text-indigo-900">Edit</a></td>
+        <td class="px-6 py-4">
+            <form action="/expense/1" method="GET">
+                <button name="delete"><i class="material-icons">delete</i> 
+                </button>
+            </form>
+                
+        </td>
     </tr>
 }

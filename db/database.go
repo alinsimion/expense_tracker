@@ -38,7 +38,7 @@ func OpenDB() DB {
 		fmt.Println("Error reading records")
 	}
 
-	for _, eachrecord := range records {
+	for id, eachrecord := range records {
 		amount, _ := strconv.ParseFloat(eachrecord[3], 64)
 
 		date := strings.Split(eachrecord[1], ",")
@@ -50,11 +50,13 @@ func OpenDB() DB {
 		tempTime := time.Date(2000+y, time.Month(m), d, 0, 0, 0, 0, time.Local)
 
 		tempExpense := model.Expense{
+			Id:          strconv.Itoa(id),
 			Description: eachrecord[0],
 			Amount:      amount,
 			Category:    eachrecord[2],
 			Date:        tempTime,
 			Currency:    "RON",
+			Type:        model.EXPENSE,
 		}
 		expenses = append(expenses, tempExpense)
 	}

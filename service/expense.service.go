@@ -10,9 +10,24 @@ import (
 	"github.com/alinsimion/expense_tracker/model"
 )
 
+type ExpenseServiceInterface interface {
+	GetExpense(id string) *model.Expense
+	GetExpenses(skip int, limit int) []model.Expense
+	AddExpense(e model.Expense)
+	UpdateExpense(id string, e model.Expense) *model.Expense
+	GetCurrentBalance(filter model.FilterFunc) float64
+	GetLargestExpense(filter model.FilterFunc) model.Expense
+	GetAmountByCategory(filter model.FilterFunc) ([]string, []float64)
+	GetAmountByMonth(filter model.FilterFunc) ([]string, []float64)
+	GetAmountByDay(filter model.FilterFunc) map[string]float64
+	GetLongestStreakWithoutExpense(filter model.FilterFunc) int
+	GetCountsByCategory(filter model.FilterFunc) ([]string, []float64)
+	GetCurrentIncomes(filter model.FilterFunc) float64
+	GetCurrentExpenses(filter model.FilterFunc) float64
+}
+
 func NewExpenseService(db db.DB) *ExpenseService {
 	return &ExpenseService{
-
 		ExpenseDB: db,
 	}
 }
@@ -21,8 +36,13 @@ type ExpenseService struct {
 	ExpenseDB db.DB
 }
 
-func (es *ExpenseService) GetExpense(id string) model.Expense {
-	return es.ExpenseDB.Expenses[0]
+func (es *ExpenseService) GetExpense(id string) *model.Expense {
+	for _, tempExpense := range es.ExpenseDB.Expenses {
+		if tempExpense.Id == id {
+			return &tempExpense
+		}
+	}
+	return nil
 }
 
 func (es *ExpenseService) GetExpenses(skip int, limit int) []model.Expense {
@@ -53,19 +73,60 @@ func (es *ExpenseService) UpdateExpense(id string, e model.Expense) *model.Expen
 
 // Stats Functions
 
-func (es *ExpenseService) GetCurrentBalance() float64 {
+func (es *ExpenseService) GetCurrentBalance(filter model.FilterFunc) float64 {
 	sum := 0.0
 
-	for i := 0; i < len(es.ExpenseDB.Expenses); i++ {
-		sum += es.ExpenseDB.Expenses[i].Amount
+	for _, tempExpense := range es.ExpenseDB.Expenses {
+		if filter(tempExpense) {
+			continue
+		}
+		if tempExpense.Type == model.EXPENSE {
+			sum -= tempExpense.Amount
+		} else if tempExpense.Type == model.INCOME {
+			sum += tempExpense.Amount
+		}
+
 	}
 	return sum
 }
 
-func (es *ExpenseService) GetLargestExpense() model.Expense {
+func (es *ExpenseService) GetCurrentExpenses(filter model.FilterFunc) float64 {
+	sum := 0.0
+
+	for _, tempExpense := range es.ExpenseDB.Expenses {
+		if filter(tempExpense) {
+			continue
+		}
+		if tempExpense.Type == model.EXPENSE {
+			sum += tempExpense.Amount
+		}
+
+	}
+	return sum
+}
+
+func (es *ExpenseService) GetCurrentIncomes(filter model.FilterFunc) float64 {
+	sum := 0.0
+
+	for _, tempExpense := range es.ExpenseDB.Expenses {
+		if filter(tempExpense) {
+			continue
+		}
+		if tempExpense.Type == model.INCOME {
+			sum += tempExpense.Amount
+		}
+
+	}
+	return sum
+}
+
+func (es *ExpenseService) GetLargestExpense(filter model.FilterFunc) model.Expense {
 	var e model.Expense
 
 	for _, tempExpense := range es.ExpenseDB.Expenses {
+		if filter(tempExpense) {
+			continue
+		}
 		if tempExpense.Amount > e.Amount {
 			e = tempExpense
 		}
@@ -73,13 +134,18 @@ func (es *ExpenseService) GetLargestExpense() model.Expense {
 	return e
 }
 
-func (es *ExpenseService) GetAmountByCategory() ([]string, []float64) {
+func (es *ExpenseService) GetAmountByCategory(filter model.FilterFunc) ([]string, []float64) {
 	categories := make(map[string]float64)
 
 	var categoryNames []string
 	var categoryValues []float64
 
 	for _, tempExpense := range es.ExpenseDB.Expenses {
+
+		if filter(tempExpense) {
+			continue
+		}
+
 		categories[tempExpense.Category] += tempExpense.Amount
 
 		if !slices.Contains(categoryNames, tempExpense.Category) {
@@ -96,7 +162,7 @@ func (es *ExpenseService) GetAmountByCategory() ([]string, []float64) {
 	return categoryNames, categoryValues
 }
 
-func (es *ExpenseService) GetAmountByMonth() ([]string, []float64) {
+func (es *ExpenseService) GetAmountByMonth(filter model.FilterFunc) ([]string, []float64) {
 
 	months := map[string]float64{
 		"January":   0,
@@ -114,6 +180,9 @@ func (es *ExpenseService) GetAmountByMonth() ([]string, []float64) {
 	}
 
 	for _, tempExpense := range es.ExpenseDB.Expenses {
+		if filter(tempExpense) {
+			continue
+		}
 		months[tempExpense.Date.Month().String()] += tempExpense.Amount
 	}
 
@@ -149,10 +218,15 @@ func (es *ExpenseService) GetAmountByMonth() ([]string, []float64) {
 	return monthNames, monthValues
 }
 
-func (es *ExpenseService) GetAmountByDay() map[string]float64 {
+func (es *ExpenseService) GetAmountByDay(filter model.FilterFunc) map[string]float64 {
 	days := make(map[string]float64)
 
 	for _, tempExpense := range es.ExpenseDB.Expenses {
+
+		if filter(tempExpense) {
+			continue
+		}
+
 		day := tempExpense.Date.Day()
 		month := tempExpense.Date.Month()
 		year := tempExpense.Date.Year()
@@ -164,11 +238,15 @@ func (es *ExpenseService) GetAmountByDay() map[string]float64 {
 	return days
 }
 
-func (es *ExpenseService) GetLongestStreakWithoutExpense() int {
+func (es *ExpenseService) GetLongestStreakWithoutExpense(filter model.FilterFunc) int {
 
 	var dates []time.Time
 
 	for _, tempExpense := range es.ExpenseDB.Expenses {
+		if filter(tempExpense) {
+			continue
+		}
+
 		dates = append(dates, tempExpense.Date)
 	}
 
@@ -177,18 +255,51 @@ func (es *ExpenseService) GetLongestStreakWithoutExpense() int {
 	})
 
 	maxStreak := 0
-	startDate := dates[0]
 
-	for i := 1; i < len(dates); i++ {
+	if len(dates) == 1 {
+		return 1
+	}
 
-		tempStreak := dates[i].Day() - startDate.Day()
+	if len(dates) > 1 {
+		firstDate := dates[0]
+		for i := 1; i < len(dates); i++ {
 
-		if tempStreak > maxStreak {
-			maxStreak = tempStreak
+			tempStreak := dates[i].Day() - firstDate.Day()
+
+			if tempStreak > maxStreak {
+				maxStreak = tempStreak
+			}
+
+			firstDate = dates[i]
 		}
-
-		startDate = dates[i]
 	}
 
 	return maxStreak
+}
+
+func (es *ExpenseService) GetCountsByCategory(filter model.FilterFunc) ([]string, []float64) {
+
+	categoryFrequencies := make(map[string]float64)
+
+	var categoryNames []string
+	var categoryCounts []float64
+
+	for _, tempExpense := range es.ExpenseDB.Expenses {
+		if filter(tempExpense) {
+			continue
+		}
+		categoryFrequencies[tempExpense.Category] += 1
+
+		if !slices.Contains(categoryNames, tempExpense.Category) {
+			categoryNames = append(categoryNames, tempExpense.Category)
+		}
+	}
+
+	slices.Sort(categoryNames)
+
+	for _, cName := range categoryNames {
+		categoryCounts = append(categoryCounts, categoryFrequencies[cName])
+	}
+
+	return categoryNames, categoryCounts
 }
