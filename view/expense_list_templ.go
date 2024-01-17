@@ -11,6 +11,7 @@ import "io"
 import "bytes"
 
 import (
+	"fmt"
 	"github.com/alinsimion/expense_tracker/model"
 	"github.com/alinsimion/expense_tracker/view/layout"
 )
@@ -67,7 +68,7 @@ func ExpenseList(el []model.Expense) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"w-full bg-gray-700 rounded-md text-gray-400 py-2 px-2\"><table class=\"w-full text-sm text-left text-gray-400 \"><thead class=\"text-xs uppercase bg-gray-700 text-gray-400 rounded-md\"><tr><th scope=\"col\" class=\"px-6 py-3\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"w-full bg-gray-700 rounded-md text-gray-400 py-2 px-2\" id=\"expense-list\"><table class=\"w-full text-sm text-left text-gray-400 \"><thead class=\"text-xs uppercase bg-gray-700 text-gray-400 rounded-md\"><tr><th scope=\"col\" class=\"px-6 py-3\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -126,7 +127,7 @@ func ExpenseList(el []model.Expense) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for i := 0; i < len(el); i++ {
-			templ_7745c5c3_Err = ShowOneExpense(el[i]).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = ShowOneExpense(fmt.Sprintf("/expense/%s", el[i].Id), el[i]).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

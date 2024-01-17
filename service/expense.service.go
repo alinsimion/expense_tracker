@@ -15,11 +15,12 @@ type ExpenseServiceInterface interface {
 	GetExpenses(skip int, limit int) []model.Expense
 	AddExpense(e model.Expense)
 	UpdateExpense(id string, e model.Expense) *model.Expense
+	DeleteExpense(id string) error
 	GetCurrentBalance(filter model.FilterFunc) float64
 	GetLargestExpense(filter model.FilterFunc) model.Expense
-	GetAmountByCategory(filter model.FilterFunc) ([]string, []float64)
-	GetAmountByMonth(filter model.FilterFunc) ([]string, []float64)
-	GetAmountByDay(filter model.FilterFunc) map[string]float64
+	GetExpensesByCategory(filter model.FilterFunc) ([]string, []float64)
+	GetExpensesByMonth(filter model.FilterFunc) ([]string, []float64)
+	GetExpensesByDay(filter model.FilterFunc) map[string]float64
 	GetLongestStreakWithoutExpense(filter model.FilterFunc) int
 	GetCountsByCategory(filter model.FilterFunc) ([]string, []float64)
 	GetCurrentIncomes(filter model.FilterFunc) float64
@@ -66,6 +67,16 @@ func (es *ExpenseService) UpdateExpense(id string, e model.Expense) *model.Expen
 		if es.ExpenseDB.Expenses[i].Description == id {
 			es.ExpenseDB.Expenses[i] = e
 			return &e
+		}
+	}
+	return nil
+}
+
+func (es *ExpenseService) DeleteExpense(id string) error {
+
+	for i, expense := range es.ExpenseDB.Expenses {
+		if id == expense.Id {
+			es.ExpenseDB.Expenses = append(es.ExpenseDB.Expenses[:i], es.ExpenseDB.Expenses[i+1:]...)
 		}
 	}
 	return nil
@@ -134,7 +145,7 @@ func (es *ExpenseService) GetLargestExpense(filter model.FilterFunc) model.Expen
 	return e
 }
 
-func (es *ExpenseService) GetAmountByCategory(filter model.FilterFunc) ([]string, []float64) {
+func (es *ExpenseService) GetExpensesByCategory(filter model.FilterFunc) ([]string, []float64) {
 	categories := make(map[string]float64)
 
 	var categoryNames []string
@@ -143,6 +154,10 @@ func (es *ExpenseService) GetAmountByCategory(filter model.FilterFunc) ([]string
 	for _, tempExpense := range es.ExpenseDB.Expenses {
 
 		if filter(tempExpense) {
+			continue
+		}
+
+		if tempExpense.Type == model.INCOME {
 			continue
 		}
 
@@ -162,7 +177,7 @@ func (es *ExpenseService) GetAmountByCategory(filter model.FilterFunc) ([]string
 	return categoryNames, categoryValues
 }
 
-func (es *ExpenseService) GetAmountByMonth(filter model.FilterFunc) ([]string, []float64) {
+func (es *ExpenseService) GetExpensesByMonth(filter model.FilterFunc) ([]string, []float64) {
 
 	months := map[string]float64{
 		"January":   0,
@@ -183,6 +198,10 @@ func (es *ExpenseService) GetAmountByMonth(filter model.FilterFunc) ([]string, [
 		if filter(tempExpense) {
 			continue
 		}
+		if tempExpense.Type == model.INCOME {
+			continue
+		}
+
 		months[tempExpense.Date.Month().String()] += tempExpense.Amount
 	}
 
@@ -218,12 +237,16 @@ func (es *ExpenseService) GetAmountByMonth(filter model.FilterFunc) ([]string, [
 	return monthNames, monthValues
 }
 
-func (es *ExpenseService) GetAmountByDay(filter model.FilterFunc) map[string]float64 {
+func (es *ExpenseService) GetExpensesByDay(filter model.FilterFunc) map[string]float64 {
 	days := make(map[string]float64)
 
 	for _, tempExpense := range es.ExpenseDB.Expenses {
 
 		if filter(tempExpense) {
+			continue
+		}
+
+		if tempExpense.Type == model.INCOME {
 			continue
 		}
 

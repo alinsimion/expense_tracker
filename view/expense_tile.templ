@@ -7,6 +7,14 @@ import (
 	"github.com/alinsimion/expense_tracker/view/layout"
 )
 
+func getDeleteUrl(expense model.Expense) string {
+    return fmt.Sprintf("/expense/%s/delete", expense.Id)
+}
+
+func getEditUrl(expense model.Expense) string {
+    return fmt.Sprintf("/expense/%s/edit", expense.Id)
+}
+
 templ ShowExpense(expense model.Expense) {
     @layout.Base("Expense details") {
         <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
@@ -20,7 +28,7 @@ templ ShowExpense(expense model.Expense) {
     }
 }
 
-templ ShowOneExpense(expense model.Expense) {
+templ ShowOneExpense(url string, expense model.Expense) {
     <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
         <td class="px-6 py-4">{expense.Description}</td>
         <td class="px-6 py-4">{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
@@ -28,14 +36,21 @@ templ ShowOneExpense(expense model.Expense) {
         <td class="px-6 py-4">{expense.Category}</td>
         <td class="px-6 py-4">{fmt.Sprintf("%02d-%02d-%02d", expense.Date.Day(), expense.Date.Month(), expense.Date.Year())}</td>
         <td class="px-6 py-4">{expense.Type}</td>
-         <td class="px-6 py-4">
-            <a href="/expenses/{expense.ID}/edit" class="text-indigo-600 hover:text-indigo-900">Edit</a></td>
         <td class="px-6 py-4">
-            <form action="/expense/1" method="GET">
-                <button name="delete"><i class="material-icons">delete</i> 
+            <button hx-delete={getDeleteUrl(expense)}
+                    hx-swap="outerHTML"
+                    hx-trigger="click"
+                    hx-target="#expense-list"
+                    >
+                <i class="material-icons" style="color:rgb(150,0,0)">delete</i> 
+            </button>
+        </td>
+        <td class="px-6 py-4">
+            <form action={templ.SafeURL(getEditUrl(expense))} method="GET">
+                <button >
+                    <i class="material-icons">edit</i> 
                 </button>
             </form>
-                
         </td>
     </tr>
 }

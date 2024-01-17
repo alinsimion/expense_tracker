@@ -5,7 +5,6 @@ import (
 	"github.com/alinsimion/expense_tracker/handler"
 	"github.com/alinsimion/expense_tracker/service"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -14,7 +13,7 @@ func main() {
 	e := echo.New()
 	e.Static("", "./css")
 
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 
 	expenseService := service.NewExpenseService(db)
 
@@ -22,7 +21,7 @@ func main() {
 
 	handler.SetupRoutes(e, expenseHandler)
 
-	e.Logger.Fatal(e.Start(":1324"))
+	e.Logger.Fatal(e.Start(":1325"))
 
 }
 

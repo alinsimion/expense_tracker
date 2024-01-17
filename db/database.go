@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -17,6 +18,8 @@ type DB struct {
 }
 
 var db DB
+
+var Categories []string
 
 func OpenDB() DB {
 
@@ -48,6 +51,10 @@ func OpenDB() DB {
 		y, _ := strconv.Atoi(strings.Split(date[1], "/")[2])
 
 		tempTime := time.Date(2000+y, time.Month(m), d, 0, 0, 0, 0, time.Local)
+
+		if !slices.Contains(Categories, eachrecord[2]) {
+			Categories = append(Categories, eachrecord[2])
+		}
 
 		tempExpense := model.Expense{
 			Id:          strconv.Itoa(id),
