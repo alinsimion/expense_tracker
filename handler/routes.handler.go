@@ -26,6 +26,9 @@ func SetupRoutes(app *echo.Echo, h *ExpenseHandler) {
 	group3 := app.Group("/stats")
 	group3.GET("", h.ShowStats)
 
+	group4 := app.Group("/months")
+	group4.GET("", h.ShowMonths)
+
 	// group4 := app.Group("/add_expense")
 
 	// group4.GET("/:id", h.ShowAddExpense)

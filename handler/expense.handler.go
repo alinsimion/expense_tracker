@@ -9,7 +9,7 @@ import (
 
 	"github.com/alinsimion/expense_tracker/model"
 	"github.com/alinsimion/expense_tracker/service"
-	"github.com/alinsimion/expense_tracker/view"
+	expenseslib "github.com/alinsimion/expense_tracker/view/expenses"
 	"github.com/labstack/echo/v4"
 )
 
@@ -32,7 +32,9 @@ func (eh *ExpenseHandler) ShowExpenseById(c echo.Context) error {
 
 	expense := *eh.ExpenseService.GetExpense(expenseId)
 
-	se := view.ShowExpense(expense)
+	tempList := []model.Expense{expense}
+
+	se := expenseslib.ShowExpenseList("", expenseslib.ExpenseList(tempList))
 
 	return View(c, se)
 }
@@ -54,7 +56,7 @@ func (eh *ExpenseHandler) ShowExpenses(c echo.Context) error {
 		return expenses[i].Date.After(expenses[j].Date)
 	})
 
-	se := view.ShowExpenseList("Expenses", view.ExpenseList(expenses))
+	se := expenseslib.ShowExpenseList("Expenses", expenseslib.ExpenseList(expenses))
 
 	return View(c, se)
 }
@@ -125,7 +127,7 @@ func (eh *ExpenseHandler) ShowDeleteExpense(c echo.Context) error {
 		return expenses[i].Date.After(expenses[j].Date)
 	})
 
-	return View(c, view.ExpenseList(expenses))
+	return View(c, expenseslib.ExpenseList(expenses))
 }
 
 // API Functions

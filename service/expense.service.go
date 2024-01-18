@@ -138,6 +138,9 @@ func (es *ExpenseService) GetLargestExpense(filter model.FilterFunc) model.Expen
 		if filter(tempExpense) {
 			continue
 		}
+		if tempExpense.Type == model.INCOME {
+			continue
+		}
 		if tempExpense.Amount > e.Amount {
 			e = tempExpense
 		}
@@ -150,6 +153,8 @@ func (es *ExpenseService) GetExpensesByCategory(filter model.FilterFunc) ([]stri
 
 	var categoryNames []string
 	var categoryValues []float64
+
+	categoryNames = db.Categories
 
 	for _, tempExpense := range es.ExpenseDB.Expenses {
 
@@ -270,6 +275,10 @@ func (es *ExpenseService) GetLongestStreakWithoutExpense(filter model.FilterFunc
 			continue
 		}
 
+		if tempExpense.Type == model.INCOME {
+			continue
+		}
+
 		dates = append(dates, tempExpense.Date)
 	}
 
@@ -307,10 +316,17 @@ func (es *ExpenseService) GetCountsByCategory(filter model.FilterFunc) ([]string
 	var categoryNames []string
 	var categoryCounts []float64
 
+	categoryNames = db.Categories
+
 	for _, tempExpense := range es.ExpenseDB.Expenses {
 		if filter(tempExpense) {
 			continue
 		}
+
+		if tempExpense.Type == model.INCOME {
+			continue
+		}
+
 		categoryFrequencies[tempExpense.Category] += 1
 
 		if !slices.Contains(categoryNames, tempExpense.Category) {

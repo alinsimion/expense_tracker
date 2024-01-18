@@ -96,25 +96,23 @@ func getMostFrequentCategory(categoryCounts model.SortedMap) (string, float64){
 }
 
 
-templ ShowAllStats(balance float64, expense model.Expense, categoryAmounts model.SortedMap, months model.SortedMap, freeDays int,  days map[string]float64, categoryCounts model.SortedMap, incomes float64, expenses float64) {
+templ ShowAllStats(balance float64, expense model.Expense, categoryAmounts model.SortedMap, months model.SortedMap, freeDays int,  days map[string]float64, categoryCounts model.SortedMap, totalIncome float64, totalExpenses float64) {
     @layout.Base("Stats") {
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mx-4 md:mx-40 ">
-            @ShowCurrentIncomes(incomes)
-            @ShowCurrentExpenses(expenses)
+        <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4 mx-4 md:mx-30 ">
+            @ShowCurrentIncomes(totalIncome)
+            @ShowCurrentExpenses(totalExpenses)
             @ShowCurrentBalance(balance)
-            @ShowLargestExpense(expense)
-            @ShowExpensesByCategory(categoryAmounts)
-            @ShowMostExpensiveMonth(getMaxMonth(months))
             @ShowMostExpensiveDay(getMaxDay(days))
+            @ShowExpensesByCategory(categoryAmounts, totalIncome)
+            @ShowMostExpensiveMonth(getMaxMonth(months))
+            @ShowLargestExpense(expense)
             @ShowExpensesByMonth(months)
             @ShowLongestStreakWithoutExpense(freeDays)
             @ShowTopThreeCategories(getTopThreeCategoryAmounts(categoryAmounts))
             @ShowMostFrequentCategories(getTopThreeCategoryAmounts(categoryCounts))
             @ShowLeastExpensiveMonth(getMinMonth(months))
-            
         </div>
     }
-
 }
 
 templ ShowCurrentExpenses(expense float64) {
@@ -131,9 +129,8 @@ templ ShowCurrentIncomes(income float64) {
     </div>
 }
 
-
 templ ShowMostFrequentCategories(categories []string, freqs []float64) {
-    <div class="rounded-md grid bg-gray-700 p-4">
+    <div class="rounded-md grid col-span-2 md:col-span-1 bg-gray-700 p-4">
         <div class="text-gray-400 text-lg">Top 3 categories </div>
         for i, category := range(categories) {
             <div class="flex justify-between">
@@ -145,7 +142,7 @@ templ ShowMostFrequentCategories(categories []string, freqs []float64) {
 }
 
 templ ShowTopThreeCategories(categories []string, amounts []float64) {
-    <div class="rounded-md grid bg-gray-700 p-4">
+    <div class="rounded-md grid col-span-2 md:col-span-1 bg-gray-700 p-4">
         <div class="text-gray-400 text-lg">Top 3 categories</div>
         for i, category := range(categories) {
             <div class="flex justify-between">
@@ -157,7 +154,7 @@ templ ShowTopThreeCategories(categories []string, amounts []float64) {
 }
 
 templ ShowMostExpensiveDay(maxAmount float64, maxDay string) {
-    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+    <div class="rounded-md grid content-around col-span-2 md:col-span-1 justify-center bg-gray-700 p-4">
         <div class="text-gray-400 text-lg">Most expensive day</div>
         <div class="text-gray-100 text-4xl">{maxDay}</div>
         <div class="text-gray-300 text-xl flex justify-between">{fmt.Sprintf("%0.f",maxAmount)} RON</div>
@@ -166,7 +163,7 @@ templ ShowMostExpensiveDay(maxAmount float64, maxDay string) {
 }
 
 templ ShowLongestStreakWithoutExpense(days int) {
-    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+    <div class="rounded-md grid content-around col-span-2 md:col-span-1 justify-center bg-gray-700 p-4">
         <div class="text-gray-400 text-lg">Streak without expense</div>
         <div class="text-gray-100 text-4xl content-center justify-center">{strconv.Itoa(days)} days</div>
     </div>
@@ -174,7 +171,7 @@ templ ShowLongestStreakWithoutExpense(days int) {
 }
 
 templ ShowMostExpensiveMonth(maxAmount float64, maxMonth string) {
-    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+    <div class="rounded-md grid content-around col-span-2 md:col-span-1 justify-center bg-gray-700 p-4">
         <div class="text-gray-400 text-lg">Most Expensive Month</div>
         <div class="text-gray-100 text-4xl">{maxMonth}</div>
         <div class="text-gray-300 text-xl">{fmt.Sprintf("%0.f",maxAmount)} RON</div>
@@ -182,7 +179,7 @@ templ ShowMostExpensiveMonth(maxAmount float64, maxMonth string) {
 }
 
 templ ShowLeastExpensiveMonth(maxAmount float64, maxMonth string) {
-    <div class="rounded-md grid content-around justify-center bg-gray-700 p-4">
+    <div class="rounded-md grid content-around col-span-2 md:col-span-1 justify-center bg-gray-700 p-4">
         <div class="text-gray-400 text-lg">Least Expensive Month</div>
         <div class="text-gray-100 text-4xl">{maxMonth}</div>
         <div class="text-gray-300 text-xl">{fmt.Sprintf("%0.f",maxAmount)} RON</div>
@@ -190,24 +187,27 @@ templ ShowLeastExpensiveMonth(maxAmount float64, maxMonth string) {
 }
 
 templ ShowExpensesByMonth(months model.SortedMap) {
-    <div class="rounded-md row-span-2 bg-gray-700 p-4">
+    <div class="rounded-md row-span-2 col-span-2 md:col-span-1  bg-gray-700 p-4">
     <div class="text-gray-400 text-sm">Expenses by month</div>
         for index, amount := range months.Values {
             <div class="flex justify-between">
                 <span class="text-gray-400 text-lg">{months.Keys[index]}</span>
                 <span class="text-gray-100 text-lg">{fmt.Sprintf("%0.f", amount)} RON</span>
+                
             </div>
         }
     </div>
 }
 
-templ ShowExpensesByCategory(categories model.SortedMap) {
-    <div class="rounded-md row-span-2 bg-gray-700 p-4">
+templ ShowExpensesByCategory(categories model.SortedMap, income float64) {
+    <div class="rounded-md row-span-2 col-span-2 bg-gray-700 p-4">
     <div class="text-gray-400 text-sm">Expenses by category</div>
         for index, amount := range categories.Values {
-            <div class="flex justify-between">
+            // <div class="flex justify-between">
+            <div class="grid grid-cols-3">
                 <span class="text-gray-400 text-lg">{categories.Keys[index]}</span>
-                <span class="text-gray-100 text-lg">{fmt.Sprintf("%0.f", amount)} RON</span>
+                <span class="text-gray-100 text-lg text-right">{fmt.Sprintf("%0.f", amount)} RON</span>
+                <span class="text-gray-100 text-lg text-right">{fmt.Sprintf("%0.2f", (amount/income)*100)} %</span>
             </div>
         }
     </div>

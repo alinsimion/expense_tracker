@@ -22,7 +22,4 @@ func main() {
 	handler.SetupRoutes(e, expenseHandler)
 
 	e.Logger.Fatal(e.Start(":1325"))
-
 }
-
-//overflow-y-auto

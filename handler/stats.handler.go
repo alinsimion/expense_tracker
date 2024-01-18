@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/alinsimion/expense_tracker/model"
 	"github.com/alinsimion/expense_tracker/view"
+	stats "github.com/alinsimion/expense_tracker/view/stats"
 	"github.com/labstack/echo/v4"
 )
 
@@ -44,7 +46,7 @@ func filter(start string, end string) model.FilterFunc {
 }
 
 func (eh *ExpenseHandler) ShowAddExpenseWithLayout(c echo.Context) error {
-	sae := view.Page()
+	sae := view.ShowAddExpenseForm()
 
 	return View(c, sae)
 }
@@ -72,7 +74,39 @@ func (eh *ExpenseHandler) ShowStats(c echo.Context) error {
 	var categoryCounts model.SortedMap
 	categoryCounts.Keys, categoryCounts.Values = eh.ExpenseService.GetCountsByCategory(filter(start, end))
 
-	ss := view.ShowAllStats(balance, largestExpense, categoryAmounts, monthMap, dayStreak, days, categoryCounts, incomes, expenses)
+	ss := stats.ShowAllStats(balance, largestExpense, categoryAmounts, monthMap, dayStreak, days, categoryCounts, incomes, expenses)
 
 	return View(c, ss)
+}
+
+func (eh *ExpenseHandler) ShowMonths(c echo.Context) error {
+	yearParam := c.QueryParams().Get("year")
+
+	months := make(map[string]model.SortedMap)
+
+	monthNames := []string{"January", "February", "March", "April",
+		"May", "June", "July", "August",
+		"September", "October", "November", "December"}
+
+	for index, monthName := range monthNames {
+		var start string
+		var end string
+
+		year := time.Now().Year()
+
+		if yearParam != "" {
+			year, _ = strconv.Atoi(yearParam)
+		}
+
+		start = fmt.Sprintf("01/%0d/%d", index+1, year)
+		end = fmt.Sprintf("31/%0d/%d", index+1, year)
+
+		var monthMap model.SortedMap
+		monthMap.Keys, monthMap.Values = eh.ExpenseService.GetExpensesByCategory(filter(start, end))
+		months[monthName] = monthMap
+	}
+
+	sm := view.ShowMonthsWithLayout(monthNames, months)
+
+	return View(c, sm)
 }

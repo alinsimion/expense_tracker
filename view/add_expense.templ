@@ -63,7 +63,7 @@ templ form(categories []string) {
 
 }
 
-templ Page() {
+templ ShowAddExpenseForm() {
 	@layout.Base("Add Expense") {
 	    @form(getCategories())
     }

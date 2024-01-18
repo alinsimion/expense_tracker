@@ -1,0 +1,29 @@
+package view
+
+import "github.com/alinsimion/expense_tracker/model"
+import "github.com/alinsimion/expense_tracker/view/layout"
+import "fmt"
+
+
+templ ShowAllMonths(monthNames []string, months map[string]model.SortedMap) {
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4 mx-4 md:mx-30 ">
+        for _, monthName := range monthNames {
+            <div class="rounded-md row-span-2 bg-gray-700 p-4">
+                <div class="text-gray-400 text-sm">{monthName}</div>
+                for index, amount := range months[monthName].Values {
+                    <div class="grid grid-cols-3">
+                        <span class="text-gray-400 text-lg">{months[monthName].Keys[index]}</span>
+                        <span class="text-gray-100 text-lg text-right">{fmt.Sprintf("%0.f RON", amount)} </span>
+                        <span class="text-gray-100 text-lg text-right">{fmt.Sprintf("%0.f %%", amount)} </span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+templ ShowMonthsWithLayout(monthNames []string, months map[string]model.SortedMap) {
+    @layout.Base("All months") {
+        @ShowAllMonths(monthNames, months)
+    }
+}
