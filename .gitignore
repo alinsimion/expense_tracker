@@ -22,3 +22,5 @@ go.work
 
 tmp/
 test_data/
+.env
+*.db

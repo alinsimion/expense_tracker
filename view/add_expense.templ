@@ -1,34 +1,66 @@
 package view
 
 import "github.com/alinsimion/expense_tracker/view/layout"
-import "github.com/alinsimion/expense_tracker/db"
-
-func getCategories() []string {
-    return db.Categories
-}
+import "github.com/alinsimion/expense_tracker/util"
 
 
-templ form(categories []string) {
-	
-    <form class="max-w-sm mx-auto" action="/expense/add" method="POST">
+templ AddExpenseForm(categories []string) {
+	<div class="h-screen ">
+    <form class="max-w-sm m-auto" action={templ.SafeURL(util.GetFullUrl("/expense/add"))} method="POST">
         <div class="mb-5">
             <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-            <input type="text" name="description" id="description" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required />
+            // <input type="text" name="description" id="description" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required />
+
+            <textarea
+            placeholder="Expense short description"
+            name="description" id="description"
+            class="textarea textarea-bordered textarea-sm w-full "></textarea>
         </div>
-        <div class="mb-5">
-            <label for="amount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount</label>
-            <input type="text" name="amount" id="amount" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required /> 
+        <div class="divider"></div>
+        
+        <label for="amount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount</label>
+        <div class="flex join mb-5 ">
+            <div class="w-full">
+                <input type="number" name="amount" id="amount" placeholder="Enter the amount" class="input input-bordered join-item w-full text-sm" />
+            </div>
+            <select class="select select-bordered join-item" id="currency" name="currency">
+                // <option disabled selected>Currency</option>
+                <option selected>RON</option>
+                <option>EUR</option>
+                <option>USD</option>
+            </select>
+            
         </div>
-        <div class="flex items-start mb-5">
-            <label for="categories" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select category</label>
-            <select id="categories" name="categories" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+
+        <div class="divider"></div>
+        <div class=" mb-5">
+            
+            <label for="categories" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
+            <input type="category" name="category" id="category" placeholder="Enter a new category" class="input input-bordered w-full text-sm" />
+            <div class="divider"> OR </div>
+            <select id="categories" name="categories" class="select select-bordered w-full ">
+                <option disabled selected>Pick a category</option>
                 for _, category := range categories {
                     <option value={category}>{category}</option>
                 }
             </select>
         </div>
 
-        <div class="my-5">
+        <div class="divider"></div>    
+        <label for="date" class="block text-sm font-medium text-gray-900 dark:text-white">Date</label>
+        <div class="relative max-w-sm my-5">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                </svg>
+            </div>
+            
+            <input datepicker datepicker-autohide datepicker-format="dd/mm/yyyy" name="date" type="text" class="bg-base-100 border border-gray-700 text-gray-400 text-sm focus:ring-gray-700 rounded-lg block w-full ps-10 p-2.5  dark:bg-base-100 dark:border-gray-700 dark:placeholder-gray-400 dark:text-gray-400" placeholder="Select date"/>
+        </div>
+        
+        <div class="divider"></div>
+
+        <div class="flex mx-10 my-5 justify-between">
             <label
                 class="inline-block pl-[0.15rem] hover:cursor-pointer"
                 for="flexSwitchCheckDefault"
@@ -45,26 +77,18 @@ templ form(categories []string) {
                 for="flexSwitchCheckDefault"
             > Income
             </label>
-
-            
-        </div>
-
-        <div class="relative max-w-sm my-5">
-            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
-                </svg>
-            </div>
-            <input datepicker datepicker-autohide datepicker-format="dd/mm/yyyy" name="date" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date"/>
-        </div>
         
-        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Add Expense</button>
+        </div>
+        <div class="divider"></div>
+
+        <button type="submit" class="btn btn-primary w-full">Add Expense</button>
     </form>
+    </div>
 
 }
 
-templ ShowAddExpenseForm() {
+templ ShowAddExpenseForm(categories []string) {
 	@layout.Base("Add Expense") {
-	    @form(getCategories())
+	    @AddExpenseForm(categories)
     }
 }

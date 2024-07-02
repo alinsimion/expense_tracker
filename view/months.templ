@@ -6,7 +6,7 @@ import "fmt"
 
 
 templ ShowAllMonths(monthNames []string, months map[string]model.SortedMap) {
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4 mx-4 md:mx-30 ">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 md:gap-4 mx-4 md:mx-30 ">
         for _, monthName := range monthNames {
             <div class="rounded-md row-span-2 bg-gray-700 p-4">
                 <div class="text-gray-400 text-sm">{monthName}</div>
@@ -22,8 +22,26 @@ templ ShowAllMonths(monthNames []string, months map[string]model.SortedMap) {
     </div>
 }
 
+templ ShowAllMonths2(monthNames []string, months map[string]model.SortedMap) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 md:gap-4 mx-4 md:mx-30 ">
+        for _, monthName := range monthNames {
+            <div class="shadow stat">
+                <div class="stat-title">{monthName}</div>
+                
+                 for index, amount := range months[monthName].Values {
+                    <div class="grid grid-cols-3">    
+                        <span class="font-xl font-bold mr-2 ">{months[monthName].Keys[index]}</span>
+                        <span class="font-xl font-bold text-primary text-right">{fmt.Sprintf("%0.f", amount)}RON</span>
+                        <span class="font-xl font-bold text-secondary text-right">{fmt.Sprintf("%0.f %%", amount)}</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
 templ ShowMonthsWithLayout(monthNames []string, months map[string]model.SortedMap) {
     @layout.Base("All months") {
-        @ShowAllMonths(monthNames, months)
+        @ShowAllMonths2(monthNames, months)
     }
 }

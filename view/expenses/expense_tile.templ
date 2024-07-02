@@ -2,55 +2,74 @@ package view
 
 import (
     "github.com/alinsimion/expense_tracker/model"
+    "github.com/alinsimion/expense_tracker/util"
     "fmt"
-    "strconv"
-	"github.com/alinsimion/expense_tracker/view/layout"
 )
 
 func getDeleteUrl(expense model.Expense) string {
-    return fmt.Sprintf("/expense/%s/delete", expense.Id)
+    // return fmt.Sprintf("/expense/%s/delete", expense.Id)
+    return util.GetFullUrl(fmt.Sprintf("/expense/%d/delete", expense.Id))
 }
 
 func getEditUrl(expense model.Expense) string {
-    return fmt.Sprintf("/expense/%s/edit", expense.Id)
+    return util.GetFullUrl(fmt.Sprintf("/expense/%d/edit", expense.Id))
 }
 
-templ ShowExpense(expense model.Expense) {
-    @layout.Base("Expense details") {
-        <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
-            <td class="px-6 py-4">{expense.Description}</td>
-            <td class="px-6 py-4">{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
-            <td class="px-6 py-4">{expense.Currency}</td>
-            <td class="px-6 py-4">{expense.Category}</td>
-            <td class="px-6 py-4">{fmt.Sprintf("%02d-%02d-%02d", expense.Date.Day(), expense.Date.Month(), expense.Date.Year())}</td>
-            <td class="px-6 py-4">{expense.Type}</td>
-        </tr>
-    }
-}
+templ Nothing(){}
 
-templ ShowOneExpense(url string, expense model.Expense) {
-    <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
-        <td class="px-6 py-4">{expense.Description}</td>
-        <td class="px-6 py-4">{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
-        <td class="px-6 py-4">{expense.Currency}</td>
-        <td class="px-6 py-4">{expense.Category}</td>
-        <td class="px-6 py-4">{fmt.Sprintf("%02d-%02d-%02d", expense.Date.Day(), expense.Date.Month(), expense.Date.Year())}</td>
-        <td class="px-6 py-4">{expense.Type}</td>
-        <td class="px-6 py-4">
-            <button hx-delete={getDeleteUrl(expense)}
-                    hx-swap="outerHTML"
-                    hx-trigger="click"
-                    hx-target="#expense-list"
-                    >
-                <i class="material-icons" style="color:rgb(150,0,0)">delete</i> 
-            </button>
-        </td>
-        <td class="px-6 py-4">
-            <form action={templ.SafeURL(getEditUrl(expense))} method="GET">
-                <button >
-                    <i class="material-icons">edit</i> 
-                </button>
-            </form>
-        </td>
-    </tr>
-}
+// templ ShowExpense(expense model.Expense) {
+//     @layout.Base("Expense details") {
+//         <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
+//             <td class="px-6 py-4">{fmt.Sprintf("%02d %s %02d", expense.Date.Day(), expense.Date.Month().String(), expense.Date.Year())}</td>
+//             <td class="px-6 py-4">{expense.Description}</td>
+//             <td class="px-6 py-4">{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
+//             <td class="px-6 py-4">{expense.Currency}</td>
+//             <td class="px-6 py-4">{expense.Category}</td>
+//             <td class="px-6 py-4">{expense.Type}</td>
+//         </tr>
+//     }
+// }
+
+
+// templ ShowOneExpense(expense model.Expense) {
+//     <tr class="border-b bg-gray-800 border-gray-700 rounded-md">
+//         <td class="px-6 py-4">{fmt.Sprintf("%02d %0s %02d", expense.Date.Day(), expense.Date.Month().String()[:3], expense.Date.Year())}</td>
+//         <td class="px-6 py-4">{expense.Description}</td>
+//         <td class="px-6 py-4">{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
+//         <td class="px-6 py-4">{expense.Currency}</td>
+//         <td class="px-6 py-4">{expense.Category}</td>
+//         <td class="px-6 py-4">{expense.Type}</td>
+//         <td class="px-6 py-4">
+
+//         <button class="btn" onclick={ShowModalForExpense(expense)}><i class="material-icons" style="color:rgb(150,0,0)">delete</i> </button>
+//         <dialog id={fmt.Sprintf("my_modal_$d",expense.Id)} class="modal">
+//             <div class="modal-box">
+//                 <h3 class="text-lg font-bold">Hello!</h3>
+//                 <p class="py-4">Press ESC key or click outside to close</p>
+//             </div>
+//             <button hx-delete={getDeleteUrl(expense)}
+//                     hx-swap="outerHTML"
+//                     hx-trigger="click"
+//                     hx-target="#expense-list"
+//                     >
+//                 <span> Yes, delete</span>
+//                 // <i class="material-icons" style="color:rgb(150,0,0)">delete</i> 
+//             </button>
+//         </dialog>
+//         // <button hx-delete={getDeleteUrl(expense)}
+//         //         hx-swap="outerHTML"
+//         //         hx-trigger="click"
+//         //         hx-target="#expense-list"
+//         //         >
+//         //     <i class="material-icons" style="color:rgb(150,0,0)">delete</i> 
+//         // </button>
+//         </td>
+//         <td class="px-6 py-4">
+//             <form action={templ.SafeURL(getEditUrl(expense))} method="GET">
+//                 <button >
+//                     <i class="material-icons">edit</i> 
+//                 </button>
+//             </form>
+//         </td>
+//     </tr>
+// }

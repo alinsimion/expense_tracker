@@ -1,45 +1,43 @@
 package handler
 
 import (
-	"fmt"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/alinsimion/expense_tracker/db"
 	"github.com/alinsimion/expense_tracker/model"
-	"github.com/alinsimion/expense_tracker/service"
+	"github.com/alinsimion/expense_tracker/util"
 	expenseslib "github.com/alinsimion/expense_tracker/view/expenses"
 	"github.com/labstack/echo/v4"
 )
 
 type ExpenseHandler struct {
-	ExpenseService service.ExpenseServiceInterface
+	store db.Store
 }
 
-func NewExpenseHandler(us service.ExpenseServiceInterface) *ExpenseHandler {
+func NewExpenseServer(store db.Store) *ExpenseHandler {
 	return &ExpenseHandler{
-		ExpenseService: us,
+		store: store,
 	}
 }
-
-// View Functions
 
 func (eh *ExpenseHandler) ShowExpenseById(c echo.Context) error {
 	expenseId := c.Param("id")
 
-	fmt.Println(expenseId)
-
-	expense := *eh.ExpenseService.GetExpense(expenseId)
+	expense := *eh.store.GetExpenseById(expenseId)
 
 	tempList := []model.Expense{expense}
 
-	se := expenseslib.ShowExpenseList("", expenseslib.ExpenseList(tempList))
+	se := expenseslib.ShowExpenseList("", tempList)
 
 	return View(c, se)
 }
 
 func (eh *ExpenseHandler) ShowExpenses(c echo.Context) error {
+
 	skip, err := strconv.Atoi(c.QueryParam("skip"))
 	if err != nil {
 		skip = 0
@@ -50,13 +48,15 @@ func (eh *ExpenseHandler) ShowExpenses(c echo.Context) error {
 		limit = 1000
 	}
 
-	expenses := eh.ExpenseService.GetExpenses(skip, limit)
+	user := c.Request().Context().Value(userContextKey).(*model.User)
+
+	expenses := eh.store.GetExpenses(skip, limit, user.Id)
 
 	sort.Slice(expenses, func(i, j int) bool {
 		return expenses[i].Date.After(expenses[j].Date)
 	})
 
-	se := expenseslib.ShowExpenseList("Expenses", expenseslib.ExpenseList(expenses))
+	se := expenseslib.ShowExpenseList("Expenses", expenses)
 
 	return View(c, se)
 }
@@ -79,18 +79,24 @@ func (eh *ExpenseHandler) ShowAddExpense(c echo.Context) error {
 		e.Amount, err = strconv.ParseFloat(c.FormValue("amount"), 64)
 
 		if err != nil {
+
 			return err
 		}
+		newCategory := c.FormValue("category")
 
-		e.Category = c.FormValue("categories")
-		e.Currency = "RON"
+		if newCategory != "" {
+			e.Category = newCategory
+		} else {
+			e.Category = c.FormValue("categories")
+		}
+		e.Currency = c.FormValue("currency")
 
 		if strings.Contains(c.FormValue("date"), "/") {
 			d, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "/")[0])
 			m, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "/")[1])
 			y, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "/")[2])
 
-			tempTime := time.Date(2000+y, time.Month(m), d, 0, 0, 0, 0, time.Local)
+			tempTime := time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
 
 			e.Date = tempTime
 		} else {
@@ -99,19 +105,23 @@ func (eh *ExpenseHandler) ShowAddExpense(c echo.Context) error {
 
 		e.Type = income
 
-		eh.ExpenseService.AddExpense(*e)
-		// return c.JSON(http.StatusCreated, m)
+		e.Uid = int64(c.Request().Context().Value(userContextKey).(*model.User).Id)
+
+		eh.store.CreateExpense(*e)
+		http.Redirect(c.Response(), c.Request(), util.GetFullUrl("/expense"), http.StatusSeeOther)
+		return nil
 	}
 
 	return eh.ShowAddExpenseWithLayout(c)
+
 }
 
 func (eh *ExpenseHandler) ShowEditExpenseById(c echo.Context) error {
 	expenseId := c.Param("id")
 
-	expense := eh.ExpenseService.GetExpense(expenseId)
+	expense := eh.store.GetExpenseById(expenseId)
 
-	eh.ExpenseService.AddExpense(*expense)
+	eh.store.UpdateExpense(expenseId, *expense)
 
 	return eh.ShowAddExpense(c)
 }
@@ -119,37 +129,15 @@ func (eh *ExpenseHandler) ShowEditExpenseById(c echo.Context) error {
 func (eh *ExpenseHandler) ShowDeleteExpense(c echo.Context) error {
 	expenseId := c.Param("id")
 
-	eh.ExpenseService.DeleteExpense(expenseId)
+	eh.store.DeleteExpense(expenseId)
 
-	expenses := eh.ExpenseService.GetExpenses(0, 500)
+	user := c.Request().Context().Value(userContextKey).(*model.User)
+
+	expenses := eh.store.GetExpenses(0, 500, user.Id)
 
 	sort.Slice(expenses, func(i, j int) bool {
 		return expenses[i].Date.After(expenses[j].Date)
 	})
 
-	return View(c, expenseslib.ExpenseList(expenses))
-}
-
-// API Functions
-// TODO
-
-func (eh *ExpenseHandler) ApiGetExpenseById(c echo.Context) error {
-	return nil
-}
-
-func (eh *ExpenseHandler) ApiGetExpensesWithFilter(c echo.Context) error {
-	return nil
-}
-
-func (eh *ExpenseHandler) ApiAddExpense(c echo.Context) error {
-	return nil
-}
-
-func (eh *ExpenseHandler) ApiDeleteExpense(c echo.Context) error {
-	return nil
-}
-
-// Patch ?
-func (eh *ExpenseHandler) ApiEditExpense(c echo.Context) error {
-	return nil
+	return View(c, expenseslib.ExpenseList2(expenses))
 }

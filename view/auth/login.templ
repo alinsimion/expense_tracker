@@ -1,0 +1,169 @@
+package view
+
+import "github.com/alinsimion/expense_tracker/view/layout"
+import "github.com/alinsimion/expense_tracker/util"
+import "github.com/nedpals/supabase-go"
+
+
+
+type LoginErrors struct {
+    Email string
+    Password string
+    InvalidCredentials string
+}
+
+templ LoginForm(creds supabase.UserCredentials, errors LoginErrors) {
+    <div class="hero bg-base-200 min-h-screen" id="login">
+        <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+            <form class="card-body"
+                hx-post={util.GetFullUrl("/login")}
+                hx-swap="outerHTML"
+                hx-target="#login"
+            >
+                <h3 class="mb-6 text-2xl font-medium text-center">Login to your Account</h3>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    <input type="email" value={creds.Email} name="email" id="email" placeholder="email" class="input input-bordered" required />
+                    if len(errors.Email) > 0 {
+                        <label class="label">
+                            <span class="label-text-alt text-error">{errors.Email}</span>
+                        </label>
+                    }
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Password</span>
+                    </label>
+                    <input type="password" name="password" id="password" placeholder="password" class="input input-bordered" required />
+                    if len(errors.Password) > 0 {
+                        <label class="label">
+                            <span class="label-text-alt text-error">{errors.Email}</span>
+                        </label>
+                    }
+                    if len(errors.InvalidCredentials) > 0 {
+                        <label class="label">
+                            <span class="label-text-alt text-error">{errors.InvalidCredentials}</span>
+                        </label>
+                    }
+                    // <label class="label">
+                    //     <a href="#" class="label-text-alt link link-hover">Forgot password?</a>
+                    // </label>
+                </div>
+                <div class="form-control mt-6">
+                    <button class="btn btn-primary">Login</button>
+                </div>
+                <div class="divider">OR</div>
+                <div class="block">
+                    <a href={templ.SafeURL(util.GetFullUrl("/login/provider/google"))} class="w-full px-3 py-4 font-medium text-white btn bg-black rounded-lg" data-primary="black" data-rounded="rounded-lg">Login with Google <i class="fa-brands fa-google"></i> </a>
+                </div>  
+
+                <div class="flex flex-row justify-center">
+                    <a href={templ.SafeURL(util.GetFullUrl("/signup"))} class="btn btn-link"> Don't have an account? Signup here.</a> 
+                </div>
+            </form>
+            
+        </div>
+    </div>
+}
+
+templ ShowLoginWithLayout() {
+     @layout.Base("Login") {
+        <div class="flex-col items-center ">
+            @LoginForm(supabase.UserCredentials{}, LoginErrors{})
+        </div>
+    }
+} 
+
+
+
+templ ShowSignupWithLayout() {
+     @layout.Base("Signup") {
+        @SignupForm(SignupCreds{}, SignupErrors{})
+    }
+} 
+
+type SignupCreds struct {
+    Email string
+    Password string
+    ConfirmPassword string
+}
+
+type SignupErrors struct {
+    Email string
+    Password string
+    ConfirmPassword string
+}
+
+
+templ SignupForm(creds SignupCreds, errors SignupErrors) {
+    <div class="hero bg-base-200 min-h-screen" id="signup">
+        <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+            <form class="card-body"
+                hx-post={util.GetFullUrl("/signup")}
+                hx-swap="outerHTML"
+                hx-target="#signup"
+            >
+                <h3 class="mb-6 text-2xl font-medium text-center">Sign Up</h3>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    <input type="email" value={creds.Email} name="email" id="email" placeholder="email" class="input input-bordered" required />
+                    if len(errors.Email) > 0 {
+                        <label class="label">
+                            <span class="label-text-alt text-error">{errors.Email}</span>
+                        </label>
+                    }
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Password</span>
+                    </label>
+                    <input type="password" name="password" id="password" placeholder="password" class="input input-bordered" required />
+                    if len(errors.Password) > 0 {
+                        <label class="label">
+                            <span class="label-text-alt text-error">{errors.Password}</span>
+                        </label>
+                    }
+                    // <label class="label">
+                    //     <a href="#" class="label-text-alt link link-hover">Forgot password?</a>
+                    // </label>
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Confirm Password</span>
+                    </label>
+                    <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm password" class="input input-bordered" required />
+                    if len(errors.ConfirmPassword) > 0 {
+                        <label class="label">
+                            <span class="label-text-alt text-error">{errors.ConfirmPassword}</span>
+                        </label>
+                    }
+                </div>
+                <div class="form-control mt-6">
+                    <button class="btn btn-primary">Sign Up</button>
+                </div>
+            </form>
+            <div class="flex flex-row justify-center mb-5">
+                <a href={templ.SafeURL(util.GetFullUrl("/login"))} class="btn btn-link"> Already have an account? Login here.</a> 
+            </div>
+        </div>
+    </div>
+}
+
+
+
+templ SignupSucces(email string) {
+    @layout.Base("Signup"){
+        <div> A confirmation email has been sent to <span class="font-semibold text-success">{email}</span></div>
+    }    
+}
+
+script CallbackScript() {
+    var url = window.location.href;
+    var newUrl = url.replace("#", "?")
+    window.location = newUrl   
+}
