@@ -1,12 +1,10 @@
 package layout
 
 import (
-	
+	"context"
 	model "github.com/alinsimion/expense_tracker/model"
-
 	"github.com/alinsimion/expense_tracker/util"
 )
-
 
 func getUserImage(ctx context.Context) string {
 	user := ctx.Value(model.UserContextKey).(*model.User)
@@ -18,15 +16,14 @@ func getUserImage(ctx context.Context) string {
 }
 
 templ Base(title string) {
-	
 	<!DOCTYPE html>
 	<html lang="en" data-theme="dark">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta
- 				name="description"
- 				content="Expense Tracker"
+				name="description"
+				content="Expense Tracker"
 			/>
 			<meta name="google" content="notranslate"/>
 			// <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
@@ -34,10 +31,9 @@ templ Base(title string) {
 			<script src="https://cdn.tailwindcss.com"></script>
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/datepicker.min.js"></script>
 			<script src="https://unpkg.com/alpinejs" defer></script>
-			<link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.8/dist/full.min.css" rel="stylesheet" type="text/css" />
+			<link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.8/dist/full.min.css" rel="stylesheet" type="text/css"/>
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
-
-			<link rel="stylesheet" href="style.css"/>
+			// <link rel="stylesheet" href="style.css"/>
 			<title>{ title }</title>
 			<script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
 		</head>
@@ -54,80 +50,72 @@ templ Base(title string) {
 	</html>
 }
 
-templ Navigation(title string){
-	<div class="navbar bg-base-100">
+templ Navigation(title string) {
+	<div class="navbar bg-base-100 sticky top-0 z-10">
 		<div class="navbar-start">
 			<div class="dropdown">
 				<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
 					<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-5 w-5"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 6h16M4 12h8m-8 6h16" />
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-5 w-5"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 6h16M4 12h8m-8 6h16"
+						></path>
 					</svg>
-				
 				</div>
-				
 				<ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[2] mt-3 w-52 p-2 shadow">
-					<li><a href={templ.SafeURL(util.GetFullUrl("/expense"))}>Expenses</a></li>
-					<li><a href={templ.SafeURL(util.GetFullUrl("/stats"))}>Stats</a></li>
-					<li><a href={templ.SafeURL(util.GetFullUrl("/months"))}>Months</a></li>
+					<li><a href={ templ.SafeURL(util.GetFullUrl("/expense")) }>Expenses</a></li>
+					<li><a href={ templ.SafeURL(util.GetFullUrl("/stats")) }>Stats</a></li>
+					<li><a href={ templ.SafeURL(util.GetFullUrl("/months")) }>Months</a></li>
 				</ul>
 			</div>
-			<a href={templ.SafeURL(util.GetFullUrl("/" ))} class="btn btn-ghost text-xl">Expense Tracker</a>
+			<a href={ templ.SafeURL(util.GetFullUrl("/")) } class="btn btn-ghost text-xl">Expense Tracker</a>
 		</div>
 		<div class="navbar-center hidden lg:flex">
 			<ul class="menu menu-horizontal px-1">
-			<li><a href={templ.SafeURL(util.GetFullUrl("/expense"))} >Expenses</a></li>
-			<li><a href={templ.SafeURL(util.GetFullUrl("/stats"))}>Stats</a></li>
-			<li><a href={templ.SafeURL(util.GetFullUrl("/months"))}>Months</a></li>
-			
-			<form method="GET" action={templ.SafeURL(util.GetFullUrl("/expense/add"))} >
-				<button type="submit" class="btn btn-primary btn-sm">
-					<span>Add Expense</span>
-				</button>
-			</form>
-			
+				<li><a href={ templ.SafeURL(util.GetFullUrl("/expense")) }>Expenses</a></li>
+				<li><a href={ templ.SafeURL(util.GetFullUrl("/stats")) }>Stats</a></li>
+				<li><a href={ templ.SafeURL(util.GetFullUrl("/months")) }>Months</a></li>
+				<form method="GET" action={ templ.SafeURL(util.GetFullUrl("/expense/add")) }>
+					<button type="submit" class="btn btn-primary btn-sm">
+						<span>Add Expense</span>
+					</button>
+				</form>
 			</ul>
 		</div>
 		<div class="navbar-end gap-2">
-			
 			<div class="dropdown dropdown-bottom dropdown-left text-right">
 				<div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
 					<div class="w-10 rounded-full">
 						<img
 							alt="User Image"
-							src={getUserImage(ctx)} referrerpolicy="no-referrer"/>
+							src={ getUserImage(ctx) }
+							referrerpolicy="no-referrer"
+						/>
 					</div>
 				</div>
 				<ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[2] mt-3 p-2 shadow">
 					<li>
-						<form method="POST" action={templ.SafeURL(util.GetFullUrl("/logout"))}>
-							<button type="submit" >Logout</button>
+						<form method="POST" action={ templ.SafeURL(util.GetFullUrl("/logout")) }>
+							<button type="submit">Logout</button>
 						</form>
 					</li>
-					
 				</ul>
 			</div>
 		</div>
-
 		if title != "Add Expense" {
-			<form method="GET" action={templ.SafeURL(util.GetFullUrl("/expense/add"))}>
-				
+			<form method="GET" action={ templ.SafeURL(util.GetFullUrl("/expense/add")) }>
 				<button type="submit" class="fixed bottom-5 z-[5] right-5 btn btn-primary lg:hidden">
 					<span>New</span>
 				</button>
-			
 			</form>
 		}
-
-
 	</div>
 }
-

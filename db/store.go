@@ -12,6 +12,7 @@ type Store interface {
 	GetCurrentBalance(filter model.FilterFunc, userId int64) float64
 	GetLargestExpense(filter model.FilterFunc, userId int64) model.Expense
 	GetExpensesByCategory(filter model.FilterFunc, userId int64) ([]string, []float64)
+	GetIncomeByCategory(filter model.FilterFunc, userId int64) ([]string, []float64)
 	GetExpensesByMonth(filter model.FilterFunc, userId int64) ([]string, []float64)
 	GetExpensesByDay(filter model.FilterFunc, userId int64) map[string]float64
 	GetLongestStreakWithoutExpense(filter model.FilterFunc, userId int64) int

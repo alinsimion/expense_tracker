@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -157,8 +156,6 @@ func (eh *ExpenseHandler) HandleAuthCallback(ctx echo.Context) error {
 	}
 
 	http.SetCookie(ctx.Response(), toDeleteCookie)
-
-	fmt.Println(path)
 
 	redirectPath := util.GetFullUrl("/expense")
 

@@ -32,7 +32,7 @@ func (es *ExpenseHandler) ShowHomescreen(ctx echo.Context) error {
 			sort.Slice(expenses, func(i, j int) bool {
 				return expenses[i].Date.After(expenses[j].Date)
 			})
-			returnView = expense.ShowExpenseList("Expenses", expenses)
+			returnView = expense.ShowExpenseList("Expenses", expenses, []bool{false})
 		}
 	} else {
 		returnView = home.ShowHomeWithLayout()

@@ -24,3 +24,12 @@ tmp/
 test_data/
 .env
 *.db
+
+*.sh
+populate_db.py
+
+expense_2023.csv
+expense_2024.csv
+
+income_2023.csv
+income_2024.csv

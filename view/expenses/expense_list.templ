@@ -1,21 +1,25 @@
 package view
 
 import (
-    "github.com/alinsimion/expense_tracker/model"
-    // "github.com/alinsimion/expense_tracker/util"
-    "github.com/alinsimion/expense_tracker/view/layout"
-    "fmt"
-    "strconv"
+	"fmt"
+	"github.com/alinsimion/expense_tracker/model"
+	"github.com/alinsimion/expense_tracker/util"
+	"github.com/alinsimion/expense_tracker/view/layout"
+	"strconv"
 )
 
-templ ShowExpenseList(title string, el []model.Expense) {
-    @layout.Base(title) {
-		@ExpenseList2(el)
-	}
+
+func getDeleteUrl(expense model.Expense) string {
+	// return fmt.Sprintf("/expense/%s/delete", expense.Id)
+	return util.GetFullUrl(fmt.Sprintf("/expense/%d/delete", expense.Id))
+}
+
+func getEditUrl(expense model.Expense) string {
+	var _ = templruntime.GeneratedTemplate
+	return util.GetFullUrl(fmt.Sprintf("/expense/%d/edit", expense.Id))
 }
 
 script ShowModalForExpense(id int64) {
-    
     const modalId = "my_modal_" + id    
     const elem = document.getElementById(modalId);
     elem.showModal()
@@ -27,87 +31,185 @@ script CloseModalForExpense(id int64) {
     elem.close()
 }
 
+templ ShowExpenseList(title string, el []model.Expense, pages []bool) {
+	@layout.Base(title) {
+		@ExpenseList2(el, pages)
+	}
+}
+
+func getIdFromList(el []model.Expense, prev bool) int64 {
+	l := len(el)
+
+	if prev {
+		return el[0].Id
+	} else {
+		return el[l-1].Id
+	}
+	
+}
+
+templ ExpenseList2(el []model.Expense, pages []bool) {
+	<div class="overflow-x-auto" id="expense-list">
+		@ShowExpenseTableBody(el, pages)
+	</div>
+}
+
+templ ShowExpenseTableBody(el []model.Expense, pages []bool){
+	<div id="expense_body">
+		<div  class="flex flex-row justify-center p-4 gap-1 items-center">
+			<button 
+				hx-get={fmt.Sprintf("/expense/body?prev_for=%d", getIdFromList(el, true))}
+				hx-target="#expense_body"
+				hx-swap="outerHTML"
+				class="rounded-md bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black">Prev</button>
+			<div class="join">
+				for idx, page := range pages {
+					if page && idx < 5 {
+						<button 
+							hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
+							hx-target="#expense_body"
+							hx-swap="outerHTML"
+							class="join-item bg-primary text-black py-1 px-1.5">{fmt.Sprintf("%d", idx)}
+						</button>
+					} else {
+						if idx < 5 {
+							<button
+								hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
+								hx-target="#expense_body"
+								hx-swap="outerHTML" 
+								class="join-item  bg-base-300 text-gray-300 py-1 px-1.5">{fmt.Sprintf("%d", idx)}
+							</button>
+						}
+					}	
+				}
+
+				if len(pages) > 10 {
+					<button class="join-item bg-base-300 text-gray-500 py-1 px-1.5 ">...</button>
+					
+					for idx, page := range pages {
+						if page && idx <= len(pages)-5 && idx >= 5 {
+							<button 
+								hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
+								hx-target="#expense_body"
+								hx-swap="outerHTML"
+								class="join-item bg-primary text-black py-1 px-1.5">{fmt.Sprintf("%d", idx)}
+							</button>
+							<button class="join-item bg-base-300 text-gray-500 py-1 px-1.5 ">...</button>
+						} 
+					}
+					
+					
+				} else {
+					<button class="join-item bg-base-300 text-gray-500 py-1 px-1.5 ">...</button>
+				}
+				
+				
+
+				for idx, page := range pages {
+					if page && idx > len(pages)-5 {
+						<button 
+							hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
+							hx-target="#expense_body"
+							hx-swap="outerHTML"
+							class="join-item bg-primary text-black py-1 px-1.5">{fmt.Sprintf("%d", idx)}
+						</button>
+					} else {
+						if idx > len(pages)-5 {
+							<button
+								hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
+								hx-target="#expense_body"
+								hx-swap="outerHTML" 
+								class=" join-item bg-base-300 text-gray-300 py-1 px-1.5">{fmt.Sprintf("%d", idx)}
+							</button>
+						}
+					}	
+				}
+			</div>
+
+			<button 
+				hx-get={fmt.Sprintf("/expense/body?next_for=%d", getIdFromList(el, false))}
+				hx-target="#expense_body"
+				hx-swap="outerHTML"
+				class="rounded-md bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black">Next</button>
+		
+		</div>
+		<table class="table table-sm table-pin-rows table-pin-cols">
+			<thead>
+				<tr>
+					<td>Date</td>
+					<td>Description</td>
+					<td>Amount</td>
+					<td>Currency</td>
+					<td>Category</td>
+					<td>Type</td>
+					<td>Actions</td>
+				</tr>
+			</thead>
+			<tbody >
+				for i := 0 ; i < len(el) ; i++ {
+					@ShowOneExpense2(el[i], i)
+				}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td>Date</td>
+					<td>Description</td>
+					<td>Amount</td>
+					<td>Currency</td>
+					<td>Category</td>
+					<td>Type</td>
+					<td>Actions</td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+	
+}
+
 templ ShowOneExpense2(expense model.Expense, index int) {
-    
-    <tr>
-        <td>{fmt.Sprintf("%02d %0s %02d", expense.Date.Day(), expense.Date.Month().String()[:3], expense.Date.Year())}</td>
-        <td>{expense.Description}</td>
-        <td>{strconv.FormatFloat(expense.Amount, 'f', 0, 64)}</td>
-        <td>{expense.Currency}</td>
-        <td>{expense.Category}</td>
-        <td>{expense.Type}</td>
-        <td>    
-            <div class="flex flex-row gap-2">
-                <div class="w-min">
-                    <button class="btn btn-outline btn-error" onclick={ShowModalForExpense(expense.Id)}>
-                        <i class="fa fa-trash" aria-hidden="true" class="bg-error text-error"></i>
-                    </button>
-                    <dialog id={fmt.Sprintf("my_modal_%d", expense.Id)} class="modal">
-                        <div class="modal-box">
-                            <h3 class="text-lg font-bold">Warning!</h3>
-                            <p class="py-4">Are you sure you want to delete this expense?</p>
-                            <div class="modal-action">
-                                <button hx-delete={getDeleteUrl(expense)}
-                                        hx-swap="outerHTML"
-                                        hx-trigger="click"
-                                        hx-target="#expense-list"
-                                        class="btn btn-outline btn-error"
-                                        >
-                                    <span> Yes, delete</span>
-                                    // <i class="material-icons" style="color:rgb(150,0,0)">delete</i> 
-                                </button>
-                                <button class="btn" onclick={CloseModalForExpense(expense.Id)}>Cancel</button>
-                            </div>
-                        </div>
-                        
-                    </dialog>
-                </div>
-                <div class="w-min">
-                    <form class="w-min" action={templ.SafeURL(getEditUrl(expense))} method="GET">
-                        <button type="submit" class="btn btn-outline btn-primary">
-                            <i class="fa fa-pencil" aria-hidden="true" class="text-primary"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </td>
-        
-    </tr>
+	<tr>
+		<td>{ fmt.Sprintf("%02d %0s %02d", expense.Date.Day(), expense.Date.Month().String()[:3], expense.Date.Year()) }</td>
+		<td>{ expense.Description }</td>
+		<td>{ strconv.FormatFloat(expense.Amount, 'f', 2, 64) }</td>
+		<td>{ expense.Currency }</td>
+		<td>{ expense.Category }</td>
+		<td>{ expense.Type }</td>
+		<td>
+			<div class="flex flex-row gap-2">
+				<div class="w-min">
+					<button class="btn btn-outline btn-error" onclick={ ShowModalForExpense(expense.Id) }>
+						<i class="fa fa-trash" aria-hidden="true" class="bg-error text-error"></i>
+					</button>
+					<dialog id={ fmt.Sprintf("my_modal_%d", expense.Id) } class="modal">
+						<div class="modal-box">
+							<h3 class="text-lg font-bold">Warning!</h3>
+							<p class="py-4">Are you sure you want to delete this expense?</p>
+							<div class="modal-action">
+								<button
+									hx-delete={ getDeleteUrl(expense) }
+									hx-swap="outerHTML"
+									hx-trigger="click"
+									hx-target="#expense-list"
+									class="btn btn-outline btn-error"
+								>
+									<span>Yes, delete</span>
+									// <i class="material-icons" style="color:rgb(150,0,0)">delete</i> 
+								</button>
+								<button class="btn" onclick={ CloseModalForExpense(expense.Id) }>Cancel</button>
+							</div>
+						</div>
+					</dialog>
+				</div>
+				<div class="w-min">
+					<form class="w-min" action={ templ.SafeURL(getEditUrl(expense)) } method="GET">
+						<button type="submit" class="btn btn-outline btn-primary">
+							<i class="fa fa-pencil" aria-hidden="true" class="text-primary"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</td>
+	</tr>
 }
 
-templ ExpenseList2(el []model.Expense) {
-    <div class="overflow-x-auto" id="expense-list">
-        <table class="table table-sm table-pin-rows table-pin-cols">
-            <thead>
-            <tr>
 
-                <td>Date</td>
-                <td>Description</td>
-                <td>Amount</td>
-                <td>Currency</td>
-                <td>Category</td>
-                <td>Type</td>
-                <td>Actions</td>
-                
-            </tr>
-            </thead>
-            <tbody>
-                for i := 0 ; i < len(el) ; i++ {
-                    @ShowOneExpense2(el[i], i)
-                }
-            
-            </tbody>
-            <tfoot>
-            <tr>
-                <td>Date</td>
-                <td>Description</td>
-                <td>Amount</td>
-                <td>Currency</td>
-                <td>Category</td>
-                <td>Type</td>
-                <td>Actions</td>
-            </tr>
-            </tfoot>
-        </table>
-        </div>
-}

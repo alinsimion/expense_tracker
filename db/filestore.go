@@ -273,6 +273,10 @@ func (es *FileStore) GetExpensesByCategory(filter model.FilterFunc) ([]string, [
 	return categoryNames, categoryValues
 }
 
+func (es *FileStore) GetIncomeByCategory(filter model.FilterFunc, userId int64) ([]string, []float64) {
+	return []string{"ceva"}, []float64{}
+}
+
 func (es *FileStore) GetExpensesByMonth(filter model.FilterFunc) ([]string, []float64) {
 
 	months := map[string]float64{

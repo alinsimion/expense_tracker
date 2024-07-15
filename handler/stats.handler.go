@@ -45,17 +45,14 @@ func filter(start string, end string) model.FilterFunc {
 	}
 }
 
-func (eh *ExpenseHandler) ShowAddExpenseWithLayout(c echo.Context) error {
-	user := c.Request().Context().Value(userContextKey).(*model.User)
-	sae := view.ShowAddExpenseForm(eh.store.GetCategories(user.Id))
-
-	return View(c, sae)
-}
-
 func (eh *ExpenseHandler) ShowStats(c echo.Context) error {
 
 	start := c.QueryParams().Get("start")
 	end := c.QueryParams().Get("end")
+	if start == "" && end == "" {
+		start = "01/01/" + fmt.Sprintf("%d", time.Now().Year())
+		end = "31/12/" + fmt.Sprintf("%d", time.Now().Year())
+	}
 	// could get startDate and endDate for custom period stats
 	user := c.Request().Context().Value(userContextKey).(*model.User)
 
@@ -85,7 +82,8 @@ func (eh *ExpenseHandler) ShowMonths(c echo.Context) error {
 	yearParam := c.QueryParams().Get("year")
 	user := c.Request().Context().Value(userContextKey).(*model.User)
 
-	months := make(map[string]model.SortedMap)
+	monthlyExpenses := make(map[string]model.SortedMap)
+	monthlyIncomes := make(map[string]float64)
 
 	monthNames := []string{"January", "February", "March", "April",
 		"May", "June", "July", "August",
@@ -106,10 +104,29 @@ func (eh *ExpenseHandler) ShowMonths(c echo.Context) error {
 
 		var monthMap model.SortedMap
 		monthMap.Keys, monthMap.Values = eh.store.GetExpensesByCategory(filter(start, end), user.Id)
-		months[monthName] = monthMap
+		expenseSum := 0.0
+
+		for i := range monthMap.Values {
+			expenseSum += monthMap.Values[i]
+		}
+		if expenseSum > 0 {
+			monthlyExpenses[monthName] = monthMap
+		}
+
+		_, totals := eh.store.GetIncomeByCategory(filter(start, end), user.Id)
+
+		// fmt.Println(year, " ", monthName, " ", totals)
+		incomeSum := 0.0
+
+		for i := range totals {
+			incomeSum += totals[i]
+		}
+
+		monthlyIncomes[monthName] = incomeSum
+		// fmt.Println(monthlyIncomes)
 	}
 
-	sm := view.ShowMonthsWithLayout(monthNames, months)
+	sm := view.ShowMonthsWithLayout(monthNames, monthlyExpenses, monthlyIncomes)
 
 	return View(c, sm)
 }

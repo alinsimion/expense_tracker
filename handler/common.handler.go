@@ -7,6 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/alinsimion/expense_tracker/model"
 	"github.com/alinsimion/expense_tracker/util"
 	"github.com/labstack/echo/v4"
 )
@@ -51,7 +52,7 @@ func (eh *ExpenseHandler) WithUser(next echo.HandlerFunc) echo.HandlerFunc {
 		user := eh.store.GetUserByEmail(resp.Email)
 
 		if user.Email == "" {
-			slog.Error("No user in DB, strange", "err", err.Error())
+			slog.Error("No user in DB, strange")
 		} else {
 			user.LoggedIn = true
 			avatarUrl, ok := resp.UserMetadata["avatar_url"]
@@ -104,8 +105,17 @@ func (eh *ExpenseHandler) WithAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		user := eh.store.GetUserByEmail(resp.Email)
+
 		if user.Email == "" {
-			slog.Error("No user in DB, strange", "err", err.Error())
+			slog.Error("No user in DB, strange")
+
+			user := model.User{
+				Email: resp.Email,
+				// AvatarUrl: avatarUrl,
+			}
+
+			eh.store.CreateUser(user)
+
 		} else {
 			user.LoggedIn = true
 			avatarUrl, ok := resp.UserMetadata["avatar_url"]

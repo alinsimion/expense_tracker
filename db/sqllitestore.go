@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"sort"
+	"strings"
 
 	"github.com/alinsimion/expense_tracker/model"
 	_ "modernc.org/sqlite"
@@ -270,7 +272,7 @@ func (s *SqlLiteStore) UpdateExpense(id string, e model.Expense) (int64, error) 
 			currency = $4,
 			date = $5,
 			description = $6,
-			type = $7
+			type = $7,
 			uid = $8
     WHERE id = $1`, expensesTable)
 
@@ -328,6 +330,11 @@ func (s *SqlLiteStore) GetLargestExpense(filter model.FilterFunc, userId int64) 
 		if filter(expense) {
 			continue
 		}
+
+		if expense.Type == model.INCOME {
+			continue
+		}
+
 		if expense.Amount > maxExpense.Amount {
 			maxExpense = expense
 		}
@@ -337,22 +344,70 @@ func (s *SqlLiteStore) GetLargestExpense(filter model.FilterFunc, userId int64) 
 
 func (s *SqlLiteStore) GetExpensesByCategory(filter model.FilterFunc, userId int64) ([]string, []float64) {
 	categories := make(map[string]float64)
-
+	// categoryNamesList := []string{}
+	categoryNamesList := s.GetCategories(userId)
 	expenses := s.GetExpenses(0, 0, userId)
 
 	for _, expense := range expenses {
 		if filter(expense) {
 			continue
 		}
+
+		if expense.Type == model.INCOME {
+			continue
+		}
+
 		categories[expense.Category] += expense.Amount
+		if !StringSliceContains(categoryNamesList, expense.Category) {
+			categoryNamesList = append(categoryNamesList, expense.Category)
+		}
 	}
+
+	sort.Slice(categoryNamesList, func(i, j int) bool {
+		return strings.Compare(categoryNamesList[i], categoryNamesList[j]) == -1
+	})
 
 	var categoryNames []string
 	var categoryTotals []float64
 
-	for key, value := range categories {
-		categoryNames = append(categoryNames, key)
-		categoryTotals = append(categoryTotals, value)
+	for _, categoryName := range categoryNamesList {
+		categoryNames = append(categoryNames, categoryName)
+		categoryTotals = append(categoryTotals, categories[categoryName])
+	}
+
+	return categoryNames, categoryTotals
+}
+
+func (s *SqlLiteStore) GetIncomeByCategory(filter model.FilterFunc, userId int64) ([]string, []float64) {
+	categories := make(map[string]float64)
+	categoryNamesList := []string{}
+	incomes := s.GetExpenses(0, 0, userId)
+
+	for _, income := range incomes {
+		if filter(income) {
+			continue
+		}
+
+		if income.Type == model.EXPENSE {
+			continue
+		}
+
+		categories[income.Category] += income.Amount
+		if !StringSliceContains(categoryNamesList, income.Category) {
+			categoryNamesList = append(categoryNamesList, income.Category)
+		}
+	}
+
+	sort.Slice(categoryNamesList, func(i, j int) bool {
+		return strings.Compare(categoryNamesList[i], categoryNamesList[j]) == -1
+	})
+
+	var categoryNames []string
+	var categoryTotals []float64
+
+	for _, categoryName := range categoryNamesList {
+		categoryNames = append(categoryNames, categoryName)
+		categoryTotals = append(categoryTotals, categories[categoryName])
 	}
 
 	return categoryNames, categoryTotals
@@ -360,30 +415,37 @@ func (s *SqlLiteStore) GetExpensesByCategory(filter model.FilterFunc, userId int
 
 func (s *SqlLiteStore) GetExpensesByMonth(filter model.FilterFunc, userId int64) ([]string, []float64) {
 	months := make(map[string]float64)
-
 	expenses := s.GetExpenses(0, 0, userId)
 
+	monthNamesList := []string{"January", "February", "March", "April",
+		"May", "June", "July", "August",
+		"September", "October", "November", "December"}
+
 	for _, expense := range expenses {
-		if expense.Type != model.EXPENSE {
-			continue
-		}
 		if filter(expense) {
 			continue
 		}
+
+		if expense.Type == model.INCOME {
+			continue
+		}
+
 		month := expense.Date.Month().String()
 		months[month] += expense.Amount
+
 	}
 
 	var monthNames []string
 	var monthTotals []float64
 
-	for key, value := range months {
-		monthNames = append(monthNames, key)
-		monthTotals = append(monthTotals, value)
+	for _, monthName := range monthNamesList {
+		monthNames = append(monthNames, monthName)
+		monthTotals = append(monthTotals, months[monthName])
 	}
 
 	return monthNames, monthTotals
 }
+
 func (s *SqlLiteStore) GetExpensesByDay(filter model.FilterFunc, userId int64) map[string]float64 {
 	days := make(map[string]float64)
 
@@ -445,7 +507,9 @@ func (s *SqlLiteStore) GetCountsByCategory(filter model.FilterFunc, userId int64
 }
 func (s *SqlLiteStore) GetCurrentIncomes(filter model.FilterFunc, userId int64) float64 {
 	expenses := s.GetExpenses(0, 0, userId)
+
 	var total float64
+
 	for _, expense := range expenses {
 		if filter(expense) {
 			continue
