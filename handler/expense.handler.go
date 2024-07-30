@@ -31,31 +31,21 @@ func NewExpenseServer(store db.Store) *ExpenseHandler {
 	}
 }
 
-func (eh *ExpenseHandler) ShowExpenseById(c echo.Context) error {
-	expenseId := c.Param("id")
+// func (eh *ExpenseHandler) ShowExpenseById(c echo.Context) error {
+// 	expenseId := c.Param("id")
 
-	// fmt.Println(expenseId)
+// 	// fmt.Println(expenseId)
 
-	expense := *eh.store.GetExpenseById(expenseId)
+// 	expense := *eh.store.GetExpenseById(expenseId)
 
-	tempList := []model.Expense{expense}
+// 	tempList := []model.Expense{expense}
 
-	se := expenseslib.ShowExpenseList("", tempList, []bool{false})
+// 	se := expenseslib.ShowExpenseList("", tempList, []bool{false}, )
 
-	return View(c, se)
-}
+// 	return View(c, se)
+// }
 
 func (eh *ExpenseHandler) ShowExpenses(c echo.Context) error {
-
-	// skip, err := strconv.Atoi(c.QueryParam("skip"))
-	// if err != nil {
-	// 	skip = 0
-	// }
-
-	// limit, err := strconv.Atoi(c.QueryParam("limit"))
-	// if err != nil {
-	// 	limit = 1000
-	// }
 
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
@@ -73,10 +63,6 @@ func (eh *ExpenseHandler) ShowExpenses(c echo.Context) error {
 
 	filteredExpenseList := expenses[page*pageLimit : (page+1)*pageLimit]
 
-	// sort.Slice(filteredExpenseList, func(i, j int) bool {
-	// 	return filteredExpenseList[i].Date.After(filteredExpenseList[j].Date)
-	// })
-
 	var pages []bool
 
 	for i := 1; i <= len(expenses); i += pageLimit {
@@ -84,14 +70,104 @@ func (eh *ExpenseHandler) ShowExpenses(c echo.Context) error {
 	}
 	pages[page] = true
 
-	se := expenseslib.ShowExpenseList("Expenses", filteredExpenseList, pages)
+	categories := eh.store.GetCategories(user.Id)
+
+	se := expenseslib.ShowExpenseList("Expenses", filteredExpenseList, pages, categories)
 
 	return View(c, se)
 }
 
+type ExpenseFilter struct {
+	SearchTerm string
+	Category   string
+	Type       string
+	StartDate  time.Time
+	EndDate    time.Time
+	MinAmount  float64
+	MaxAmount  float64
+}
+
+func (ef *ExpenseFilter) filterExpenses(expenses []model.Expense) []model.Expense {
+
+	var tempExpenses []model.Expense
+	var tempMatchCount int
+	var totalMatchCount int
+
+	for _, expense := range expenses {
+		if ef.SearchTerm != "" {
+			totalMatchCount += 1
+			str := strings.ToLower(expense.Description)
+			substr := strings.ToLower(ef.SearchTerm)
+			if strings.Contains(str, substr) {
+				tempMatchCount += 1
+			}
+		}
+
+		if ef.Category != "Pick a category" && ef.Category != "All" {
+			totalMatchCount += 1
+			if ef.Category == expense.Category {
+				tempMatchCount += 1
+			}
+		}
+
+		if !ef.StartDate.IsZero() {
+			totalMatchCount += 1
+			if ef.StartDate.Before(expense.Date) {
+				tempMatchCount += 1
+			}
+		}
+
+		if !ef.EndDate.IsZero() {
+			totalMatchCount += 1
+			if ef.EndDate.After(expense.Date) {
+				tempMatchCount += 1
+			}
+		}
+
+		if ef.Type != "Pick a type" {
+			totalMatchCount += 1
+
+			if ef.Type == expense.Type || ef.Type == model.BOTH {
+				tempMatchCount += 1
+			}
+		}
+
+		if ef.MinAmount != 0 {
+			totalMatchCount += 1
+
+			if ef.MinAmount <= expense.Amount {
+				tempMatchCount += 1
+			}
+		}
+
+		if ef.MaxAmount != 0 {
+			totalMatchCount += 1
+
+			if ef.MaxAmount > expense.Amount {
+				tempMatchCount += 1
+			}
+		}
+
+		if tempMatchCount == totalMatchCount {
+			tempExpenses = append(tempExpenses, expense)
+		}
+
+		tempMatchCount = 0
+		totalMatchCount = 0
+
+	}
+
+	return tempExpenses
+}
+
 func (eh *ExpenseHandler) ShowExpensesTable(c echo.Context) error {
 
-	var filteredExpenseList []model.Expense
+	var onePageExpenses []model.Expense
+	var totalAmount float64
+
+	var startDateTime time.Time
+	var endDateTime time.Time
+
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
 		page = 0
@@ -107,10 +183,53 @@ func (eh *ExpenseHandler) ShowExpensesTable(c echo.Context) error {
 		prevFor = 0
 	}
 
+	c.Request().ParseForm()
+	search := c.Request().Form.Get("search")
+	category := c.Request().Form.Get("category")
+	expenseType := c.Request().Form.Get("expense_type")
+
+	startDate := c.Request().Form.Get("start_date")
+	endDate := c.Request().Form.Get("end_date")
+
+	minAmount, _ := strconv.ParseFloat(c.Request().Form.Get("min_amount"), 64)
+	maxAmount, _ := strconv.ParseFloat(c.Request().Form.Get("max_amount"), 64)
+
+	if startDate != "" {
+		y, _ := strconv.Atoi(strings.Split(startDate, "-")[0])
+		m, _ := strconv.Atoi(strings.Split(startDate, "-")[1])
+		d, _ := strconv.Atoi(strings.Split(startDate, "-")[2])
+
+		startDateTime = time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
+
+	}
+
+	if endDate != "" {
+		y, _ := strconv.Atoi(strings.Split(endDate, "-")[0])
+		m, _ := strconv.Atoi(strings.Split(endDate, "-")[1])
+		d, _ := strconv.Atoi(strings.Split(endDate, "-")[2])
+
+		endDateTime = time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
+	}
+
 	user := c.Request().Context().Value(userContextKey).(*model.User)
 
-	// Ar trebui adaugat si filtru
 	expenses := eh.store.GetExpenses(0, 0, user.Id)
+
+	ef := ExpenseFilter{
+		SearchTerm: search,
+		Category:   category,
+		Type:       expenseType,
+		StartDate:  startDateTime,
+		EndDate:    endDateTime,
+		MinAmount:  minAmount,
+		MaxAmount:  maxAmount,
+	}
+
+	expenses = ef.filterExpenses(expenses)
+
+	for _, e := range expenses {
+		totalAmount += e.Amount
+	}
 
 	sort.Slice(expenses, func(i, j int) bool {
 		return expenses[i].Date.After(expenses[j].Date)
@@ -121,9 +240,9 @@ func (eh *ExpenseHandler) ShowExpensesTable(c echo.Context) error {
 			if expense.Id == int64(nextFor) {
 				start := min(len(expenses)-pageLimit, idx+1)
 				end := min(start+pageLimit, len(expenses))
-				filteredExpenseList = expenses[start:end]
 
-				page = (len(expenses) - start) / pageLimit
+				onePageExpenses = expenses[start:end]
+				page = start / pageLimit
 
 				break
 			}
@@ -133,29 +252,27 @@ func (eh *ExpenseHandler) ShowExpensesTable(c echo.Context) error {
 			if expense.Id == int64(prevFor) {
 				start := max(0, idx-pageLimit)
 				end := min(start+pageLimit, len(expenses))
-				filteredExpenseList = expenses[start:end]
+				onePageExpenses = expenses[start:end]
 
-				page = (len(expenses) - start) / pageLimit
+				page = start / pageLimit
 
 				break
 			}
 		}
 	} else {
-		filteredExpenseList = expenses[page*pageLimit : (page+1)*pageLimit]
+		onePageExpenses = expenses[page*pageLimit : min((page+1)*pageLimit, len(expenses))]
 	}
-
-	// sort.Slice(filteredExpenseList, func(i, j int) bool {
-	// 	return filteredExpenseList[i].Date.After(filteredExpenseList[j].Date)
-	// })
 
 	var pages []bool
 
 	for i := 1; i <= len(expenses); i += pageLimit {
 		pages = append(pages, false)
 	}
-	pages[page] = true
+	if len(pages) > 0 {
+		pages[page] = true
+	}
 
-	se := expenseslib.ShowExpenseTableBody(filteredExpenseList, pages)
+	se := expenseslib.ShowExpenseTableBody(onePageExpenses, pages, totalAmount, len(expenses))
 
 	return View(c, se)
 }
@@ -315,5 +432,6 @@ func (eh *ExpenseHandler) ShowDeleteExpense(c echo.Context) error {
 	}
 	pages[0] = true
 
-	return View(c, expenseslib.ExpenseList2(expenses, []bool{false}))
+	categories := eh.store.GetCategories(user.Id)
+	return View(c, expenseslib.ExpenseList2(expenses, []bool{false}, categories))
 }

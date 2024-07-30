@@ -8,7 +8,9 @@ import (
 	"strconv"
 )
 
-
+const (
+	pagesToShow = 3
+)
 func getDeleteUrl(expense model.Expense) string {
 	// return fmt.Sprintf("/expense/%s/delete", expense.Id)
 	return util.GetFullUrl(fmt.Sprintf("/expense/%d/delete", expense.Id))
@@ -19,21 +21,135 @@ func getEditUrl(expense model.Expense) string {
 	return util.GetFullUrl(fmt.Sprintf("/expense/%d/edit", expense.Id))
 }
 
-script ShowModalForExpense(id int64) {
-    const modalId = "my_modal_" + id    
-    const elem = document.getElementById(modalId);
+script ShowModal(id string) {
+    const elem = document.getElementById(id);
     elem.showModal()
 }
 
-script CloseModalForExpense(id int64) {
-    const modalId = "my_modal_" + id   
-    const elem = document.getElementById(modalId);
+script CloseModal(id string) {
+    const elem = document.getElementById(id);
     elem.close()
 }
 
-templ ShowExpenseList(title string, el []model.Expense, pages []bool) {
+templ DeleteExpenseModal(expense model.Expense) {
+	<dialog id={ fmt.Sprintf("my_modal_%d", expense.Id) } class="modal">
+		<div class="modal-box">
+			<h3 class="text-lg font-bold">Warning!</h3>
+			<p class="py-4">Are you sure you want to delete this expense?</p>
+			<div class="modal-action">
+				<button
+					hx-delete={ getDeleteUrl(expense) }
+					hx-swap="outerHTML"
+					hx-trigger="click"
+					hx-target="#expense-list"
+					class="btn btn-outline btn-error"
+				>
+					<span>Yes, delete</span>
+					// <i class="material-icons" style="color:rgb(150,0,0)">delete</i> 
+				</button>
+				<button class="btn" onclick={ CloseModal(fmt.Sprintf("my_modal_%d",expense.Id)) }>Cancel</button>
+			</div>
+		</div>
+	</dialog>
+}
+
+func getAllParamIds() string {
+	return "#modal_search,#modal_category,#modal_expense_type,#start_date,#end_date,#min_amount,#max_amount"
+}
+
+templ SearchForExpenseModal(categories []string) {
+	<dialog id="my_modal_search" class="modal">
+		<div class="modal-box">
+			<h3 class="text-lg font-bold">Filter</h3>
+			<form method="dialog">
+			<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+			</form>
+			
+			<div class="flex flex-col gap-4 mt-2">
+				<div class="label">
+					<span class="label-text">Search term</span>
+				</div>
+				<input 
+					id="modal_search"
+					class="input input-bordered w-full text-sm"
+					placeholder="Search for expense description" 
+					value="" 
+					name="search"/>
+// class="rounded-[7px] px-3 py-2.5 pr-20 font-sans text-sm font-normal text-blue-gray-700 outline outline-0"
+				
+				<div class="label">
+					<span class="label-text">Category</span>
+				</div>
+				<select id="modal_category" name="category" class="select select-bordered w-full">
+					<option disabled selected>Pick a category</option>
+					
+					for _, category := range categories {
+						<option value={category}> {category}</option>
+					}
+					
+					<option value="All">All</option>
+				</select>
+				<div class="label">
+					<span class="label-text">Entry type</span>
+				</div>
+				<select id="modal_expense_type" name="expense_type" class="select select-bordered w-full">
+					<option disabled selected>Pick a type</option>
+					<option value="Expense">Expense</option>
+					<option value="Income">Income</option>
+					<option value="Both">Both</option>
+				</select>
+				<div class="flex flex-col md:flex-row gap-2">
+					<div class="w-full">
+						<div class="label">
+							<span class="label-text">Start Date</span>
+						</div>
+						<input type="date" id="start_date" name="start_date" class="input input-bordered w-full text-sm" placeholder="MM/DD/YYYY">
+					</div>
+					<div class="w-full">
+						<div class="label">
+							<span class="label-text">End Date</span>
+						</div>
+						<input type="date" id="end_date" name="end_date" class="input input-bordered w-full text-sm" placeholder="MM/DD/YYYY" pattern="\d{4}-\d{2}-\d{2}">
+					</div>
+				</div>
+
+				<div class="flex flex-row gap-2">
+					<div class="w-full">
+						<div class="label">
+							<span class="label-text">Min amount</span>
+						</div>
+						<input type="number" id="min_amount" name="min_amount" class="input input-bordered w-full text-sm" >
+					</div>
+					<div class="w-full">
+						<div class="label">
+							<span class="label-text">Max amount</span>
+						</div>
+						<input type="number" id="max_amount" name="max_amount" class="input input-bordered w-full text-sm">
+					</div>
+				</div>
+
+
+				<div class="modal-action">
+					<button
+							hx-get={util.GetFullUrl("/expense/body")} 
+							hx-target="#expense_body" 
+							hx-swap="outerHTML"
+							hx-include={getAllParamIds()}
+							class="btn btn-primary"
+						>
+							<span>Search</span>
+					</button>
+					<button class="btn" onclick={ CloseModal("my_modal_search") }>Close</button>
+				</div>
+			</div>
+		</div>
+	</dialog>
+}
+
+
+templ ShowExpenseList(title string, el []model.Expense, pages []bool, categories []string) {
 	@layout.Base(title) {
-		@ExpenseList2(el, pages)
+		@ExpenseList2(el, pages, categories)
 	}
 }
 
@@ -48,121 +164,168 @@ func getIdFromList(el []model.Expense, prev bool) int64 {
 	
 }
 
-templ ExpenseList2(el []model.Expense, pages []bool) {
-	<div class="overflow-x-auto" id="expense-list">
-		@ShowExpenseTableBody(el, pages)
+templ ExpenseList2(el []model.Expense, pages []bool, categories []string) {
+	<div class="overflow-x-auto mx-4 md:mx-10" id="expense-list">
+		@SearchForExpenseModal(categories)
+		@ShowExpenseTableBody(el, pages, 0, 0)
 	</div>
 }
 
-templ ShowExpenseTableBody(el []model.Expense, pages []bool){
-	<div id="expense_body">
-		<div  class="flex flex-row justify-center p-4 gap-1 items-center">
-			<button 
-				hx-get={fmt.Sprintf("/expense/body?prev_for=%d", getIdFromList(el, true))}
-				hx-target="#expense_body"
-				hx-swap="outerHTML"
-				class="rounded-md bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black">Prev</button>
-			<div class="join">
-				for idx, page := range pages {
-					if page && idx < 5 {
-						<button 
-							hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
-							hx-target="#expense_body"
-							hx-swap="outerHTML"
-							class="join-item bg-primary text-black py-1 px-1.5">{fmt.Sprintf("%d", idx)}
-						</button>
-					} else {
-						if idx < 5 {
-							<button
-								hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
-								hx-target="#expense_body"
-								hx-swap="outerHTML" 
-								class="join-item  bg-base-300 text-gray-300 py-1 px-1.5">{fmt.Sprintf("%d", idx)}
-							</button>
-						}
-					}	
-				}
+templ ShowExpenseTableBody(el []model.Expense, pages []bool, totalAmount float64, resultsCount int ){
 
-				if len(pages) > 10 {
-					<button class="join-item bg-base-300 text-gray-500 py-1 px-1.5 ">...</button>
-					
+	if len(el) > 0 {
+		<div id="expense_body">
+			
+			<div id="web_pagination_div" class="flex-row justify-center p-2 gap-1 overflow-auto hidden sm:flex">
+				<button class="rounded-md ml-10 bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black" 
+						type="button" 
+						onclick={ShowModal("my_modal_search")}>
+						<i class="fas fa-search"></i>
+				</button>
+				<button 
+					hx-get={util.GetFullUrl(fmt.Sprintf("/expense/body?prev_for=%d",getIdFromList(el, true)) )}
+					hx-target="#expense_body"
+					hx-swap="outerHTML"
+					hx-include={getAllParamIds()}
+					class="rounded-md bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black">Prev</button>
+				<div class="join">
 					for idx, page := range pages {
-						if page && idx <= len(pages)-5 && idx >= 5 {
-							<button 
-								hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
-								hx-target="#expense_body"
-								hx-swap="outerHTML"
-								class="join-item bg-primary text-black py-1 px-1.5">{fmt.Sprintf("%d", idx)}
-							</button>
-							<button class="join-item bg-base-300 text-gray-500 py-1 px-1.5 ">...</button>
-						} 
+						if idx < pagesToShow {
+								<button 
+									hx-get={util.GetFullUrl(fmt.Sprintf("/expense/body?page=%d", idx))}
+									hx-target="#expense_body"
+									hx-swap="outerHTML"
+									hx-include={getAllParamIds()}
+									class={"join-item py-1 px-1.5", 
+										templ.KV("text-black bg-primary", page), 
+										templ.KV("text-gray-300 bg-base-300", !page)}>
+										{fmt.Sprintf("%d", idx)}
+								</button>
+							
+						}
+					}
+
+					if len(pages) > pagesToShow * 2 {
+						<button class="join-item bg-base-300 text-gray-500 py-1 px-1.5 ">...</button>
+						
+						for idx, page := range pages {
+							if page {
+								if idx <= len(pages) - pagesToShow && idx >= pagesToShow {
+									<button 
+										hx-get={util.GetFullUrl(fmt.Sprintf("/expense/body?page=%d", idx))}
+										hx-target="#expense_body"
+										hx-swap="outerHTML"
+										hx-include={getAllParamIds()}
+										class={"join-item py-1 px-1.5", 
+											templ.KV("text-black bg-primary", page), 
+											templ.KV("text-gray-300 bg-base-300", !page)}>
+											{fmt.Sprintf("%d", idx)}
+									</button>
+									<button class="join-item bg-base-300 text-gray-500 py-1 px-1.5 ">...</button>		
+								} 	
+							}	
+						}
 					}
 					
 					
-				} else {
-					<button class="join-item bg-base-300 text-gray-500 py-1 px-1.5 ">...</button>
-				}
-				
-				
-
-				for idx, page := range pages {
-					if page && idx > len(pages)-5 {
-						<button 
-							hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
-							hx-target="#expense_body"
-							hx-swap="outerHTML"
-							class="join-item bg-primary text-black py-1 px-1.5">{fmt.Sprintf("%d", idx)}
-						</button>
-					} else {
-						if idx > len(pages)-5 {
-							<button
-								hx-get={fmt.Sprintf("/expense/body?page=%d", idx)}
-								hx-target="#expense_body"
-								hx-swap="outerHTML" 
-								class=" join-item bg-base-300 text-gray-300 py-1 px-1.5">{fmt.Sprintf("%d", idx)}
-							</button>
-						}
-					}	
-				}
+					if len(pages) > pagesToShow {
+						for idx, page := range pages {
+							if idx > len(pages) - pagesToShow {
+								<button 
+									hx-get={util.GetFullUrl(fmt.Sprintf("/expense/body?page=%d", idx))}
+									hx-target="#expense_body"
+									hx-swap="outerHTML"
+									hx-include={getAllParamIds()}
+									class={"join-item py-1 px-1.5", 
+										templ.KV("text-black bg-primary", page), 
+										templ.KV("text-gray-300 bg-base-300", !page)}>
+										{fmt.Sprintf("%d", idx)}
+								</button>
+							}
+						}	
+					}
+					
+				</div>
+				<button 
+					hx-get={util.GetFullUrl(fmt.Sprintf("/expense/body?next_for=%d", getIdFromList(el, false)))}
+					hx-target="#expense_body"
+					hx-swap="outerHTML"
+					hx-include={getAllParamIds()}
+					class="rounded-md bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black">Next</button>
+			
 			</div>
 
-			<button 
-				hx-get={fmt.Sprintf("/expense/body?next_for=%d", getIdFromList(el, false))}
-				hx-target="#expense_body"
-				hx-swap="outerHTML"
-				class="rounded-md bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black">Next</button>
-		
-		</div>
-		<table class="table table-sm table-pin-rows table-pin-cols">
-			<thead>
-				<tr>
-					<td>Date</td>
-					<td>Description</td>
-					<td>Amount</td>
-					<td>Currency</td>
-					<td>Category</td>
-					<td>Type</td>
-					<td>Actions</td>
-				</tr>
-			</thead>
-			<tbody >
-				for i := 0 ; i < len(el) ; i++ {
-					@ShowOneExpense2(el[i], i)
+			<div id="mobile_pagination_div" class="flex sm:hidden flex-row justify-center p-2 gap-1 overflow-auto">
+				<button class="rounded-md ml-10 bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black" 
+						type="button" 
+						onclick={ShowModal("my_modal_search")}>
+						<i class="fas fa-search"></i>
+				</button>
+				<button 
+					hx-get={util.GetFullUrl(fmt.Sprintf("/expense/body?prev_for=%d",getIdFromList(el, true)) )}
+					hx-target="#expense_body"
+					hx-swap="outerHTML"
+					hx-include={getAllParamIds()}
+					class="rounded-md bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black">Prev</button>
+				for idx := range pages {
+					if pages[idx] {
+						<span class="flex flex-row items-center">{fmt.Sprintf("%d of %d", idx, len(pages))}</span>
+					}
 				}
-			</tbody>
-			<tfoot>
-				<tr>
-					<td>Date</td>
-					<td>Description</td>
-					<td>Amount</td>
-					<td>Currency</td>
-					<td>Category</td>
-					<td>Type</td>
-					<td>Actions</td>
-				</tr>
-			</tfoot>
-		</table>
-	</div>
+				
+				<button 
+					hx-get={util.GetFullUrl(fmt.Sprintf("/expense/body?next_for=%d", getIdFromList(el, false)))}
+					hx-target="#expense_body"
+					hx-swap="outerHTML"
+					hx-include={getAllParamIds()}
+					class="rounded-md bg-base-300 text-gray-300 py-1 px-1.5 hover:bg-primary hover:text-black">Next</button>
+			
+			</div>
+			if resultsCount != 0 && totalAmount != 0 {
+				<div class="stat-title px-3">
+					<span> Results {fmt.Sprintf("%d",resultsCount)}</span>
+					<span> Total amount for query {fmt.Sprintf("%0.f",totalAmount)} RON</span>
+
+				</div>
+			}
+			
+
+			<table class="table table-sm table-pin-rows table-pin-cols">
+				<thead>
+					<tr>
+						<td>Date</td>
+						<td>Description</td>
+						<td>Amount</td>
+						<td>Currency</td>
+						<td>Category</td>
+						<td>Type</td>
+						<td>Actions</td>
+					</tr>
+				</thead>
+				<tbody >
+					for i := 0 ; i < len(el) ; i++ {
+						@ShowOneExpense2(el[i], i)
+					}
+				</tbody>
+				<tfoot>
+					<tr>
+						<td>Date</td>
+						<td>Description</td>
+						<td>Amount</td>
+						<td>Currency</td>
+						<td>Category</td>
+						<td>Type</td>
+						<td>Actions</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+	} else {
+		<div id="expense_body" class="text-center">
+			No results 
+		</div>
+	}	
+	
 	
 }
 
@@ -177,28 +340,10 @@ templ ShowOneExpense2(expense model.Expense, index int) {
 		<td>
 			<div class="flex flex-row gap-2">
 				<div class="w-min">
-					<button class="btn btn-outline btn-error" onclick={ ShowModalForExpense(expense.Id) }>
+					<button class="btn btn-outline btn-error" onclick={ ShowModal(fmt.Sprintf("my_modal_%d",expense.Id)) }>
 						<i class="fa fa-trash" aria-hidden="true" class="bg-error text-error"></i>
 					</button>
-					<dialog id={ fmt.Sprintf("my_modal_%d", expense.Id) } class="modal">
-						<div class="modal-box">
-							<h3 class="text-lg font-bold">Warning!</h3>
-							<p class="py-4">Are you sure you want to delete this expense?</p>
-							<div class="modal-action">
-								<button
-									hx-delete={ getDeleteUrl(expense) }
-									hx-swap="outerHTML"
-									hx-trigger="click"
-									hx-target="#expense-list"
-									class="btn btn-outline btn-error"
-								>
-									<span>Yes, delete</span>
-									// <i class="material-icons" style="color:rgb(150,0,0)">delete</i> 
-								</button>
-								<button class="btn" onclick={ CloseModalForExpense(expense.Id) }>Cancel</button>
-							</div>
-						</div>
-					</dialog>
+					@DeleteExpenseModal(expense)
 				</div>
 				<div class="w-min">
 					<form class="w-min" action={ templ.SafeURL(getEditUrl(expense)) } method="GET">

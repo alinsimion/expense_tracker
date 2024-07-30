@@ -53,7 +53,10 @@ templ AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors 
 						id="amount"
 						placeholder="Enter the amount"
 						class="input input-bordered join-item w-full text-sm"
-						value={ fmt.Sprintf("%.2f", addParams.Amount) }
+						if addParams.Amount != 0 {
+							value={ fmt.Sprintf("%.2f", addParams.Amount) }
+						}
+						
 					/>
 				</div>
 				<select class="select select-bordered join-item" id="currency" name="currency">

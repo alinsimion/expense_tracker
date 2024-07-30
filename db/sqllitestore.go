@@ -6,8 +6,10 @@ import (
 	"log/slog"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/alinsimion/expense_tracker/model"
+	"github.com/alinsimion/expense_tracker/util"
 	_ "modernc.org/sqlite"
 )
 
@@ -223,7 +225,7 @@ func (s *SqlLiteStore) GetExpenses(skip int, limit int, uid int64) []model.Expen
 
 		err := rows.Scan(&tempExpense.Id, &tempExpense.Amount, &tempExpense.Category, &tempExpense.Currency, &tempExpense.Date, &tempExpense.Description, &tempExpense.Type, &tempExpense.Uid)
 		if err != nil {
-			fmt.Println("Error while scaning metric", err.Error())
+			fmt.Println("Error while scaning expense", err.Error())
 		}
 
 		switch {
@@ -358,7 +360,7 @@ func (s *SqlLiteStore) GetExpensesByCategory(filter model.FilterFunc, userId int
 		}
 
 		categories[expense.Category] += expense.Amount
-		if !StringSliceContains(categoryNamesList, expense.Category) {
+		if !util.StringSliceContains(categoryNamesList, expense.Category) {
 			categoryNamesList = append(categoryNamesList, expense.Category)
 		}
 	}
@@ -393,7 +395,7 @@ func (s *SqlLiteStore) GetIncomeByCategory(filter model.FilterFunc, userId int64
 		}
 
 		categories[income.Category] += income.Amount
-		if !StringSliceContains(categoryNamesList, income.Category) {
+		if !util.StringSliceContains(categoryNamesList, income.Category) {
 			categoryNamesList = append(categoryNamesList, income.Category)
 		}
 	}
@@ -480,8 +482,29 @@ func (s *SqlLiteStore) GetExpensesByDay(filter model.FilterFunc, userId int64) m
 }
 
 func (s *SqlLiteStore) GetLongestStreakWithoutExpense(filter model.FilterFunc, userId int64) int {
-	return 5
+
+	expenses := s.GetExpenses(0, 0, userId)
+	var maxDays int
+	var oldDate time.Time
+	for _, e := range expenses {
+		if filter(e) {
+			continue
+		}
+		if oldDate.IsZero() {
+			oldDate = e.Date
+			continue
+		}
+
+		daysDif := e.Date.Sub(oldDate).Hours() / 24
+
+		maxDays = max(maxDays, int(daysDif))
+
+		oldDate = e.Date
+	}
+
+	return maxDays
 }
+
 func (s *SqlLiteStore) GetCountsByCategory(filter model.FilterFunc, userId int64) ([]string, []float64) {
 	categories := make(map[string]float64)
 
@@ -520,6 +543,7 @@ func (s *SqlLiteStore) GetCurrentIncomes(filter model.FilterFunc, userId int64) 
 	}
 	return total
 }
+
 func (s *SqlLiteStore) GetCurrentExpenses(filter model.FilterFunc, userId int64) float64 {
 	expenses := s.GetExpenses(0, 0, userId)
 
@@ -541,18 +565,9 @@ func (s *SqlLiteStore) GetCategories(userId int64) []string {
 	var categories []string
 	for _, expense := range expenses {
 
-		if !StringSliceContains(categories, expense.Category) {
+		if !util.StringSliceContains(categories, expense.Category) {
 			categories = append(categories, expense.Category)
 		}
 	}
 	return categories
-}
-
-func StringSliceContains(slice []string, needle string) bool {
-	for _, elem := range slice {
-		if elem == needle {
-			return true
-		}
-	}
-	return false
 }

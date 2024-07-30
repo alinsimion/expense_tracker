@@ -6,37 +6,35 @@ import (
 	"github.com/alinsimion/expense_tracker/view/layout"
 )
 
-templ ShowAllMonths(monthNames []string, months map[string]model.SortedMap) {
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 md:gap-4 mx-4 md:mx-30 ">
-		for _, monthName := range monthNames {
-			<div class="rounded-md row-span-2 bg-gray-700 p-4">
-				<div class="text-gray-400 text-sm">{ monthName }</div>
-				for index, amount := range months[monthName].Values {
-					<div class="grid grid-cols-3">
-						<span class="text-gray-400 text-lg">{ months[monthName].Keys[index] }</span>
-						<span class="text-gray-100 text-lg text-right">{ fmt.Sprintf("%0.f RON", amount) } </span>
-						<span class="text-gray-100 text-lg text-right">{ fmt.Sprintf("%0.f %%", amount) } </span>
-					</div>
-				}
-			</div>
-		}
-	</div>
-}
 
 templ ShowAllMonths2(monthNames []string, monthlyExpenses map[string]model.SortedMap, monthlyIncomes map[string]float64) {
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2 md:gap-4 mx-4 md:mx-30 ">
 		for _, monthName := range monthNames {
 			if len(monthlyExpenses[monthName].Values) > 0 {
 				<div class="shadow stat">
+					
 					<div class="stat-title">{ monthName }</div>
 					for index, amount := range monthlyExpenses[monthName].Values {
 						<div class="grid grid-cols-3">
-							<span class="font-xl font-bold mr-2 ">{ monthlyExpenses[monthName].Keys[index] }</span>
-							<span class="font-xl font-bold text-primary text-right">{ fmt.Sprintf("%0.f", amount) }RON</span>
-							if monthlyIncomes[monthName] > 0 {
-								<span class="font-xl font-bold text-secondary text-right">{ fmt.Sprintf("%0.2f %%", (amount/monthlyIncomes[monthName])*100) }</span>
+							if monthlyExpenses[monthName].Keys[index] == "Total" {
+								 
+								<span class="font-xl mt-4 font-bold mr-2 ">{ monthlyExpenses[monthName].Keys[index] }</span>
+								<span class="font-xl mt-4 font-bold text-primary text-right">{ fmt.Sprintf("%0.f", amount) } RON</span>
+								if monthlyIncomes[monthName] > 0 {
+									<span class="font-xl mt-4 font-bold text-secondary text-right">{ fmt.Sprintf("%0.2f %%", (amount/monthlyIncomes[monthName])*100) }</span>
+								} else {
+									<span class="font-xl mt-4 font-bold text-disabled text-right">No income</span>
+								}
+								
+
 							} else {
-								<span class="font-xl font-bold text-disabled text-right">No income</span>
+								<span class="font-xl font-bold mr-2 ">{ monthlyExpenses[monthName].Keys[index] }</span>
+								<span class="font-xl font-bold text-primary text-right">{ fmt.Sprintf("%0.f", amount) } RON</span>
+								if monthlyIncomes[monthName] > 0 {
+									<span class="font-xl font-bold text-secondary text-right">{ fmt.Sprintf("%0.2f %%", (amount/monthlyIncomes[monthName])*100) }</span>
+								} else {
+									<span class="font-xl font-bold text-disabled text-right">No income</span>
+								}
 							}
 						</div>
 					}

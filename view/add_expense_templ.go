@@ -87,20 +87,30 @@ func AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors A
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</textarea></div><div class=\"divider\"></div><label for=\"amount\" class=\"block mb-2 text-sm font-medium text-gray-900 dark:text-white\">Amount</label><div class=\"flex join mb-5 \"><div class=\"w-full\"><input type=\"number\" step=\"0.01\" min=\"0\" name=\"amount\" id=\"amount\" placeholder=\"Enter the amount\" class=\"input input-bordered join-item w-full text-sm\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</textarea></div><div class=\"divider\"></div><label for=\"amount\" class=\"block mb-2 text-sm font-medium text-gray-900 dark:text-white\">Amount</label><div class=\"flex join mb-5 \"><div class=\"w-full\"><input type=\"number\" step=\"0.01\" min=\"0\" name=\"amount\" id=\"amount\" placeholder=\"Enter the amount\" class=\"input input-bordered join-item w-full text-sm\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", addParams.Amount))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 56, Col: 51}
+		if addParams.Amount != 0 {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", addParams.Amount))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 57, Col: 52}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div><select class=\"select select-bordered join-item\" id=\"currency\" name=\"currency\"><option")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("></div><select class=\"select select-bordered join-item\" id=\"currency\" name=\"currency\"><option")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -144,7 +154,7 @@ func AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors A
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 75, Col: 32}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 78, Col: 32}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -157,7 +167,7 @@ func AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors A
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 75, Col: 54}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 78, Col: 54}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {
@@ -175,7 +185,7 @@ func AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors A
 					var templ_7745c5c3_Var8 string
 					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 77, Col: 32}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 80, Col: 32}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 					if templ_7745c5c3_Err != nil {
@@ -188,7 +198,7 @@ func AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors A
 					var templ_7745c5c3_Var9 string
 					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 77, Col: 45}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 80, Col: 45}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 					if templ_7745c5c3_Err != nil {
@@ -213,7 +223,7 @@ func AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors A
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 83, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 86, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -226,7 +236,7 @@ func AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors A
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 83, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 86, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -245,7 +255,7 @@ func AddExpenseForm(categories []string, addParams AddExpenseParams, addErrors A
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d/%s/%d", addParams.Date.Day(), addParams.Date.Month(), addParams.Date.Year()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 104, Col: 105}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/add_expense.templ`, Line: 107, Col: 105}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {

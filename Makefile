@@ -5,7 +5,7 @@ generate:
 	~/go/bin/templ generate
 
 tailwind:	
-	npx tailwindcss -i ./static/input.css -o ./static/output.css
+	npx tailwindcss -i ./css/style.css -o ./css/output.css
 
 # tailwind 
 run: generate build 

@@ -2,8 +2,11 @@ package model
 
 import "time"
 
-var INCOME = "Income"
-var EXPENSE = "Expense"
+const (
+	INCOME  = "Income"
+	EXPENSE = "Expense"
+	BOTH    = "Both"
+)
 
 type Expense struct {
 	Id          int64     `json:"id"`

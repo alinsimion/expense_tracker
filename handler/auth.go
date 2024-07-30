@@ -122,6 +122,8 @@ func (eh *ExpenseHandler) HandleSignupCreate(ctx echo.Context) error {
 		ConfirmPassword: req.FormValue("confirm_password"),
 	}
 
+	// TODO: Compare Passwod to Confirm Password and return FormErrors if missmatch
+
 	user, err := Client.Auth.SignUp(ctx.Request().Context(), supabase.UserCredentials{
 		Email:    credentials.Email,
 		Password: credentials.Password,

@@ -23,10 +23,11 @@ func SetupRoutes(app *echo.Echo, h *ExpenseHandler) {
 
 	group.GET("", h.ShowExpenses)
 	group.GET("/body", h.ShowExpensesTable)
+
 	group.GET("/add", h.ShowAddExpense)
 	group.POST("/add", h.ShowAddExpense)
 	group.GET("/:id/edit", h.ShowEditExpenseById)
-	group.GET("/:id/details", h.ShowExpenseById)
+	// group.GET("/:id/details", h.ShowExpenseById)
 	group.DELETE("/:id/delete", h.ShowDeleteExpense)
 
 	group3 := app.Group("/stats", h.WithAuth)

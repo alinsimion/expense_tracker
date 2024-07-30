@@ -41,7 +41,7 @@ func Base(title string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\" data-theme=\"dark\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Expense Tracker\"><meta name=\"google\" content=\"notranslate\"><script src=\"https://cdn.tailwindcss.com\"></script><script src=\"https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/datepicker.min.js\"></script><script src=\"https://unpkg.com/alpinejs\" defer></script><link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.8/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\"><script src=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js\"></script><title>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\" data-theme=\"dark\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Expense Tracker\"><meta name=\"google\" content=\"notranslate\"><script src=\"https://cdn.tailwindcss.com\"></script><script src=\"https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/datepicker.min.js\"></script><link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.8/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\"><script src=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js\"></script><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -64,7 +64,7 @@ func Base(title string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"mx-4 md:mx-10\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -129,7 +129,7 @@ func Navigation(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var7 templ.SafeURL = templ.SafeURL(util.GetFullUrl("/"))
+		var templ_7745c5c3_Var7 templ.SafeURL = templ.SafeURL(util.GetFullUrl("/expense"))
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var7)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -177,7 +177,7 @@ func Navigation(title string) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(getUserImage(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/layout/base.templ`, Line: 99, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/layout/base.templ`, Line: 100, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {

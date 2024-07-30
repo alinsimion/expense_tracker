@@ -49,11 +49,12 @@ func (eh *ExpenseHandler) ShowStats(c echo.Context) error {
 
 	start := c.QueryParams().Get("start")
 	end := c.QueryParams().Get("end")
+
 	if start == "" && end == "" {
 		start = "01/01/" + fmt.Sprintf("%d", time.Now().Year())
 		end = "31/12/" + fmt.Sprintf("%d", time.Now().Year())
 	}
-	// could get startDate and endDate for custom period stats
+
 	user := c.Request().Context().Value(userContextKey).(*model.User)
 
 	balance := eh.store.GetCurrentBalance(filter(start, end), user.Id)
@@ -109,13 +110,16 @@ func (eh *ExpenseHandler) ShowMonths(c echo.Context) error {
 		for i := range monthMap.Values {
 			expenseSum += monthMap.Values[i]
 		}
+
 		if expenseSum > 0 {
+			monthMap.Keys = append(monthMap.Keys, "Total")
+			monthMap.Values = append(monthMap.Values, expenseSum)
 			monthlyExpenses[monthName] = monthMap
+
 		}
 
 		_, totals := eh.store.GetIncomeByCategory(filter(start, end), user.Id)
 
-		// fmt.Println(year, " ", monthName, " ", totals)
 		incomeSum := 0.0
 
 		for i := range totals {
@@ -123,7 +127,6 @@ func (eh *ExpenseHandler) ShowMonths(c echo.Context) error {
 		}
 
 		monthlyIncomes[monthName] = incomeSum
-		// fmt.Println(monthlyIncomes)
 	}
 
 	sm := view.ShowMonthsWithLayout(monthNames, monthlyExpenses, monthlyIncomes)

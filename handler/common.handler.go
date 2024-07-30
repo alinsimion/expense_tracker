@@ -99,6 +99,12 @@ func (eh *ExpenseHandler) WithAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		resp, err := Client.Auth.User(c.Request().Context(), cookie.Value)
 
 		if err != nil {
+
+			// fmt.Println("Debugging")
+			// fmt.Println(cookie)
+			// fmt.Println(err.Error())
+			// fmt.Println(resp)
+
 			slog.Error("Could not auth with supabase", "err", err.Error())
 			http.Redirect(c.Response(), c.Request(), redirectPath, http.StatusSeeOther)
 			return nil
@@ -158,6 +164,7 @@ func setAuthCookies(ctx echo.Context, accessToken string) {
 		Path:     util.GetFullUrl("/"),
 		HttpOnly: true,
 		Secure:   true,
+		MaxAge:   72000,
 	}
 
 	http.SetCookie(ctx.Response(), cookie)
