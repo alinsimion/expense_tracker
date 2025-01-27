@@ -30,7 +30,8 @@ func main() {
 	handler.Client = supabase.CreateClient(sbHost, sbSecret)
 
 	e := echo.New()
-	e.Static("", "./css")
+
+	e.Static("/static", "static")
 
 	store := db.NewSqlLiteStore("")
 

@@ -16,3 +16,9 @@ run: generate build
 
 build-linux:
 	env GOOS=linux GOARCH=amd64 go build -o bin/tracker main.go
+
+build-to-deploy: tailwind generate build build-linux
+
+deploy-all:
+	scp -r "/Users/asimion/Desktop/Personal/Projects/expense_tracker/bin" root@143.42.59.21:/home/expense_tracker
+	scp -r "/Users/asimion/Desktop/Personal/Projects/expense_tracker/static" root@143.42.59.21:/home/expense_tracker/bin/

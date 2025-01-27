@@ -332,15 +332,16 @@ func (eh *ExpenseHandler) ShowAddExpense(c echo.Context) error {
 			addParamas.Category = c.FormValue("categories")
 		}
 		addParamas.Currency = c.FormValue("currency")
-
-		if strings.Contains(c.FormValue("date"), "/") {
-			d, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "/")[0])
-			m, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "/")[1])
-			y, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "/")[2])
+		fmt.Println(c.FormValue("date"))
+		if strings.Contains(c.FormValue("date"), "-") {
+			d, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "-")[2])
+			m, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "-")[1])
+			y, _ := strconv.Atoi(strings.Split(c.FormValue("date"), "-")[0])
 
 			tempTime := time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
 
 			addParamas.Date = tempTime
+
 		} else {
 			addParamas.Date = time.Now()
 		}

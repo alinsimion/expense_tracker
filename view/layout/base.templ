@@ -12,6 +12,7 @@ func getUserImage(ctx context.Context) string {
 	if user.AvatarUrl != "" {
 		return user.AvatarUrl
 	}
+
 	return "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
 }
 
@@ -26,16 +27,18 @@ templ Base(title string) {
 				content="Expense Tracker"
 			/>
 			<meta name="google" content="notranslate"/>
-			// <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-			// <link rel="shortcut icon" href="/img/templ.png" type="image/png"/>
-			<script src="https://cdn.tailwindcss.com"></script>
-			<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/datepicker.min.js"></script>
-			// <script src="https://unpkg.com/alpinejs" defer></script>
+			<link rel="manifest" href={ util.GetFullUrl("/static/manifest.json") }/>
+			<meta name="apple-mobile-web-app-capable" content="yes"/>
+			<meta name="mobile-web-app-capable" content="yes"/>
+			<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+			<meta name="apple-mobile-web-app-title" content="Kitchinet"/>
+			<link rel="apple-touch-icon" href="/static/images/manifest-icon-192.maskable.png"/>
 			<link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.8/dist/full.min.css" rel="stylesheet" type="text/css"/>
+			<link rel="stylesheet" href={ util.GetFullUrl("/static/output.css") }/>
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
-			// <link rel="stylesheet" href="style.css"/>
 			<title>{ title }</title>
 			<script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
+			@RegisterServiceWoker(util.GetFullUrl("/static/service-worker.js"))
 		</head>
 		<body>
 			<div class="">
@@ -90,16 +93,22 @@ templ Navigation(title string) {
 				</form>
 			</ul>
 		</div>
-		
 		<div class="navbar-end gap-2">
 			<div class="dropdown dropdown-bottom dropdown-left text-right">
-				<div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-					<div class="w-10 rounded-full">
-						<img
-							alt="User Image"
-							src={ getUserImage(ctx) }
-							referrerpolicy="no-referrer"
-						/>
+				<div tabindex="0" role="button" class="btn btn-ghost">
+					<div class="flex flex-row gap-2 items-center">
+						<div class="invisible md:visible">
+							<p>
+								{ ctx.Value(model.UserContextKey).(*model.User).Name }
+							</p>
+						</div>
+						<div class="rounded-full overflow-clip btn-circle avatar">
+							<img
+								alt="User Image"
+								src={ getUserImage(ctx) }
+								referrerpolicy="no-referrer"
+							/>
+						</div>
 					</div>
 				</div>
 				<ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[2] mt-3 p-2 shadow">
@@ -119,4 +128,22 @@ templ Navigation(title string) {
 			</form>
 		}
 	</div>
+}
+
+script RegisterServiceWoker(url string) {
+
+    
+    console.log(url)
+
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register(url)
+        .then(function(registration) {
+            console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch(function(error) {
+            console.log('Service Worker registration failed:', error);
+        });
+    });
+}
 }
